@@ -6,8 +6,6 @@ fastapi[standard]
 pydantic
 pydantic-settings
 python-multipart
-opencv-python
-mediapipe
 numpy
 pymongo
 websockets
