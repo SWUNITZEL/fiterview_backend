@@ -1,0 +1,53 @@
+name: Deploy to AWS EC2 using Docker
+
+on:
+  push:
+    branches:
+      - develop
+
+env:
+  DOCKER_IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-app
+  EC2_HOST: ${{ secrets.EC2_HOST }}
+  EC2_SSH_USER: ubuntu
+  PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+  CONTAINER_NAME: fastapi-app
+
+jobs:
+  build-and-push-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag ${{ env.DOCKER_IMAGE_NAME }}:latest
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Push the Docker image
+        run: docker push ${{ env.DOCKER_IMAGE_NAME }}:latest
+
+  deploy-to-ec2:
+    needs: build-and-push-docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ${{ env.EC2_SSH_USER }}
+          key: ${{ env.PRIVATE_KEY }}
+          script: |
+            CONTAINER_ID=$(sudo docker ps -q --filter "name=${{ env.CONTAINER_NAME }}")
+            
+            if [ ! -z "$CONTAINER_ID" ]; then
+              sudo docker stop $CONTAINER_ID
+              sudo docker rm $CONTAINER_ID
+            fi
+            
+            sudo docker pull ${{ env.DOCKER_IMAGE_NAME }}:latest
+            sudo docker run -d -p 80:80 \
+              -e DATABASE_URL="${{ secrets.MONGO_DB_URL }}" \
+              -e MONGO_DB_NAME="${{ secrets.MONGO_DB_NAME }}" \
+              --name ${{ env.CONTAINER_NAME }} ${{ env.DOCKER_IMAGE_NAME }}:latest
