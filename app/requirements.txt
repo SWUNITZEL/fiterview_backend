@@ -4,6 +4,7 @@ fastapi
 uvicorn[standard]
 fastapi[standard]
 pydantic
+pydantic-settings
 python-multipart
 opencv-python
 mediapipe
