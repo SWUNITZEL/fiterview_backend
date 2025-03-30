@@ -2,6 +2,7 @@ mediapipe==0.10.13
 opencv-python
 fastapi
 uvicorn[standard]
+fastapi[standard]
 pydantic
 python-multipart
 opencv-python
