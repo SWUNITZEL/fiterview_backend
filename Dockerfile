@@ -4,10 +4,10 @@ FROM python:3.12
 WORKDIR /code
 
 # ./requirements.txt 를 /code/requirements.txt 로 복사
-COPY ./app/requirements.txt /app/requirements.txt
+COPY ./app/requirements.txt /code/requirements.txt
 
 # requirements.txt 를 보고 모듈 전체 설치(-r)
-RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
+RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 # 애플리케이션 코드 복사
 COPY ./app /code/app
