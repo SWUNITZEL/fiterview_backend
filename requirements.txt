@@ -3,7 +3,6 @@ opencv-python
 fastapi
 uvicorn[standard]
 fastapi[standard]
-pydantic
 pydantic-settings
 python-multipart
 numpy

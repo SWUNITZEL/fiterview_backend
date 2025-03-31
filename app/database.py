@@ -23,13 +23,13 @@ async def find_document(collection, query):
 async def update_video_analysis(video_json, q_num):
     try:
 
-        latest_report = reports_collection.find().sort("rep_idx", -1).limit(1)
+        latest_report = await reports_collection.find().sort("rep_idx", -1).limit(1)
 
         if latest_report.count_documents({}) > 0:  # count_documents() 사용
             latest_rep_idx = latest_report[0]['rep_idx']
 
             # REPORT_CONTENTS 컬렉션에 분석 결과 업데이트
-            update_result = contents_collection.update_one(
+            update_result = await contents_collection.update_one(
                 {'rep_idx': latest_rep_idx, 'q_num': q_num},  # 조건: rep_idx와 q_num
                 {'$set': {'video_analysis': video_json}}  # 업데이트할 내용
             )
