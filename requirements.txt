@@ -10,3 +10,4 @@ numpy
 pymongo
 websockets
 motor
+python-multipart

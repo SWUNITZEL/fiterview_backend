@@ -8,8 +8,13 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
 import os
 from app import analysis, database
+from fastapi import FastAPI
+from app.routers import stt_router
 
 app = FastAPI()
+
+#stt 라우터 추가
+app.include_router(stt_router.router)
 
 #MongoDB 클라이언트 생성
 client = database.client
