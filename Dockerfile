@@ -7,7 +7,7 @@ WORKDIR /code
 COPY ./requirements.txt /code/requirements.txt
 
 # requirements.txt 를 보고 모듈 전체 설치(-r)
-RUN pip install --upgrade pip && pip install -r /code/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # 애플리케이션 코드 복사
 COPY ./app /code/app
