@@ -7,7 +7,7 @@ from fastapi import WebSocket
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
 import os
-from app import analysis, database
+import analysis, database
 
 app = FastAPI()
 

@@ -1,6 +1,6 @@
 import json
 from motor.motor_asyncio import AsyncIOMotorClient
-from app.config.config import settings
+from config.config import settings
 
 # MongoDB 연결 설정
 client = AsyncIOMotorClient(settings.MONGO_DB_URL)
