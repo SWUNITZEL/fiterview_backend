@@ -11,3 +11,6 @@ pymongo
 websockets
 motor
 python-multipart
+protobuf
+grpcio-tools
+grpcio
