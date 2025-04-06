@@ -33,10 +33,10 @@ while cap.isOpened():
             h, w, _ = frame.shape  # 프레임 크기
 
             # 홍채 중심 좌표 계산
-            left_iris_x = np.mean([face_landmarks.landmark[i].x for i in LEFT_IRIS]) * w
-            left_iris_y = np.mean([face_landmarks.landmark[i].y for i in LEFT_IRIS]) * h
-            right_iris_x = np.mean([face_landmarks.landmark[i].x for i in RIGHT_IRIS]) * w
-            right_iris_y = np.mean([face_landmarks.landmark[i].y for i in RIGHT_IRIS]) * h
+            # left_iris_x = np.mean([face_landmarks.landmark[i].x for i in LEFT_IRIS]) * w
+            # left_iris_y = np.mean([face_landmarks.landmark[i].y for i in LEFT_IRIS]) * h
+            # right_iris_x = np.mean([face_landmarks.landmark[i].x for i in RIGHT_IRIS]) * w
+            # right_iris_y = np.mean([face_landmarks.landmark[i].y for i in RIGHT_IRIS]) * h
 
             # 눈의 중심 좌표 계산
             left_eye_x = np.mean([face_landmarks.landmark[i].x for i in LEFT_EYE]) * w
@@ -44,8 +44,36 @@ while cap.isOpened():
             right_eye_x = np.mean([face_landmarks.landmark[i].x for i in RIGHT_EYE]) * w
             right_eye_y = np.mean([face_landmarks.landmark[i].y for i in RIGHT_EYE]) * h
 
+            # 왼쪽 눈 정보
+            left_iris_x = np.mean([face_landmarks.landmark[i].x for i in LEFT_IRIS]) * w
+            left_iris_y = np.mean([face_landmarks.landmark[i].y for i in LEFT_IRIS]) * h
+            left_eye_top = face_landmarks.landmark[159].y * h
+            left_eye_bottom = face_landmarks.landmark[145].y * h
+            left_eye_left = face_landmarks.landmark[33].x * w
+            left_eye_right = face_landmarks.landmark[133].x * w
+            left_eye_width = left_eye_right - left_eye_left  # 눈의 가로 길이
+            left_eye_center_y = (left_eye_top + left_eye_bottom) / 2  # 눈 중앙 높이
+
+            # 오른쪽 눈 정보
+            right_iris_x = np.mean([face_landmarks.landmark[i].x for i in RIGHT_IRIS]) * w
+            right_iris_y = np.mean([face_landmarks.landmark[i].y for i in RIGHT_IRIS]) * h
+            right_eye_top = face_landmarks.landmark[386].y * h
+            right_eye_bottom = face_landmarks.landmark[374].y * h
+            right_eye_left = face_landmarks.landmark[362].x * w
+            right_eye_right = face_landmarks.landmark[263].x * w
+            right_eye_width = right_eye_right - right_eye_left  # 눈의 가로 길이
+            right_eye_center_y = (right_eye_top + right_eye_bottom) / 2  # 눈 중앙 높이
+
+            # 양쪽 눈 평균값 계산
+            # eye_width = (left_eye_width + right_eye_width) / 2  # 눈 가로 길이 평균
+            # eye_center_y = (left_eye_center_y + right_eye_center_y) / 2  # 눈 중앙 높이 평균
+
+            # **눈 길이에 따른 비율 기반 threshold 설정**
+            # threshold_x = eye_width * 0.15  # 좌우 이동 감지 기준
+            threshold_y = left_eye_width * 0.12  # 상하 이동 감지 기준
+
             # 기준값 설정
-            threshold_y = 3.4  # 상하 이동 감지 임계값
+            # threshold_y = 3.4  # 상하 이동 감지 임계값
 
             gaze_direction = ""
 

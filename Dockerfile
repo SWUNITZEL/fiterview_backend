@@ -7,10 +7,10 @@ WORKDIR /code
 COPY ./requirements.txt /code/requirements.txt
 
 # requirements.txt 를 보고 모듈 전체 설치(-r)
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+RUN pip install --no-cache-dir -r /code/requirements.txt
 
 # 애플리케이션 코드 복사
 COPY ./app /code/app
 
 # 실행
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["python", "/code/app/main.py"]
