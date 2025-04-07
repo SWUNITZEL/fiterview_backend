@@ -2,19 +2,20 @@ from http.client import HTTPException
 from bson import ObjectId
 import uvicorn
 from pydantic import BaseModel
-from fastapi import WebSocket
-
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 import os
-import analysis, database
+import grpc
+from app.generated import nest_pb2_grpc, nest_pb2
+from app import analysis, database
+
 
 app = FastAPI()
 
-#MongoDB 클라이언트 생성
+# MongoDB 클라이언트 생성
 client = database.client
 db = database.database
-collection = db['test_collection'] # test_collection 컬렉션 선택
+collection = db['test_collection']
 
 # 데이터 모델
 class Document(BaseModel):
@@ -32,7 +33,7 @@ async def insert_db(document: Document):
 async def get_db(name: str):
     document = await database.find_document(collection, {"name":name})
     if document is None:
-        raise HTTPException(status_code=404, detail="Documnet not found")
+        raise HTTPException(status_code=404, detail="Document not found")
     return Document(name=document['name'], age=document['age'])
 
 @app.put("/documents/{id}")
@@ -51,31 +52,45 @@ async def delete_document(id: str):
         raise HTTPException(status_code=404, detail="Document not found")
     return {"message": "Document deleted successfully"}
 
-@app.get("/")
-async def read_root():
-    return {"Hello":"World"}
-
 @app.get("items/{item_id}")
 async def read_item(item_id: int, q: str = None):
     return {"item_id": item_id, "q": q}
 
-
-@app.websocket("/ws")
+# WebSocket을 통한 실시간 음성 스트리밍 처리
+@app.websocket("/stt/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    while True:
-        data = await websocket.receive_text()
-        await websocket.send_text(f"Message text was: {data}")
 
+    # gRPC 채널 설정
+    channel = grpc.insecure_channel('localhost:50051')  # 서버 주소
+    stub = nest_pb2_grpc.ClovaSpeechStub(channel)
 
+    def audio_stream_generator(audio_data: bytes):
+        yield nest_pb2.AudioChunk(audio_data=audio_data)
 
-# 파일이 저장될 경로 설정
-UPLOAD_DIR = './uploads/'
+    try:
+        while True:
+            # WebSocket을 통해 음성 데이터 수신
+            audio_data = await websocket.receive_bytes()
+
+            # 음성 데이터를 클로바 스피치 API에 전송하고 텍스트로 변환
+            response = stub.StreamingRecognize(audio_stream_generator(audio_data))
+
+            # 응답에서 텍스트 추출
+            text = response.results[0].alternatives[0].transcript  #프론트랑 연결해서 오류나면 수정필요
+
+            # 실시간 음성 인식 결과를 클라이언트로 전송
+            await websocket.send_text(f"Recognized: {text}")
+
+    except WebSocketDisconnect:
+        print("Client disconnected")
 
 # 비디오와 이미지 업로드 처리
+UPLOAD_DIR = './uploads/'
+
 @app.post("/upload/")
 async def upload_file(video: UploadFile = File(...), img: UploadFile = File(...)):
-    # 파일이 저장될 경로 설정
+
     video_filename = os.path.join(UPLOAD_DIR, video.filename)
     img_filename = os.path.join(UPLOAD_DIR, img.filename)
 
@@ -99,8 +114,6 @@ async def upload_file(video: UploadFile = File(...), img: UploadFile = File(...)
 def read_root():
     return {"message": "FastAPI server is running!"}
 
-
-
+# 서버 실행
 if __name__ == "__main__":
-
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")

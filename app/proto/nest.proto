@@ -1,0 +1,14 @@
+syntax = "proto3";
+package nest;
+
+service NestService {
+  rpc GetNest (NestRequest) returns (NestResponse);
+}
+
+message NestRequest {
+  string request_message = 1;
+}
+
+message NestResponse {
+  string response_message = 1;
+}

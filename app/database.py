@@ -1,6 +1,8 @@
 import json
 from motor.motor_asyncio import AsyncIOMotorClient
-from config.config import settings
+#from config.config import settings
+from app.config.config import settings
+
 
 # MongoDB 연결 설정
 client = AsyncIOMotorClient(settings.MONGO_DB_URL)
@@ -23,13 +25,13 @@ async def find_document(collection, query):
 async def update_video_analysis(video_json, q_num):
     try:
 
-        latest_report = await reports_collection.find().sort("rep_idx", -1).limit(1)
+        latest_report = reports_collection.find().sort("rep_idx", -1).limit(1)
 
         if latest_report.count_documents({}) > 0:  # count_documents() 사용
             latest_rep_idx = latest_report[0]['rep_idx']
 
             # REPORT_CONTENTS 컬렉션에 분석 결과 업데이트
-            update_result = await contents_collection.update_one(
+            update_result = contents_collection.update_one(
                 {'rep_idx': latest_rep_idx, 'q_num': q_num},  # 조건: rep_idx와 q_num
                 {'$set': {'video_analysis': video_json}}  # 업데이트할 내용
             )
@@ -49,11 +51,16 @@ async def update_video_analysis(video_json, q_num):
 
 
 
-# 예시 실행
-video_json = json.dumps({"hand_state": "Hand Raised", "emotion": "Neutral"})  # 비디오 분석 결과 예시
-q_num = 1  # 질문 번호 예시
-update_video_analysis(video_json, q_num)
+# 테스트용 실행 코드 (비동기 함수 내부에서 await 사용)
+async def main():
+    video_json = {
+        "hand_state": "Hand Raised",
+        "emotion": "Neutral"
+    }
+    q_num = 1
 
+    # 여기서 await 사용
+    await update_video_analysis(video_json, q_num)
 
 # DB 작업 후 연결 종료
 async def close_connection():
