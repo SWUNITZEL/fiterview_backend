@@ -1,0 +1,16 @@
+mediapipe
+opencv-python
+fastapi
+uvicorn[standard]
+fastapi[standard]
+pydantic-settings
+python-multipart
+numpy
+pymongo
+websockets
+motor
+protobuf
+grpcio-tools
+grpcio
+python-dotenv
+pydantic
