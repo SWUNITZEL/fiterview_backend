@@ -8,6 +8,7 @@ import os
 import grpc
 from app.generated import nest_pb2_grpc, nest_pb2
 from app import analysis, database
+from fastapi.middleware.cors import CORSMiddleware
 
 
 app = FastAPI()
@@ -22,6 +23,13 @@ class Document(BaseModel):
     name: str
     age: int
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 또는 프론트 주소
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 @app.post("/test/insert")
 async def insert_db(document: Document):
     # Pydantic 모델을 dict로 변환
