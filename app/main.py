@@ -6,8 +6,8 @@ from fastapi import FastAPI, File, UploadFile, HTTPException, WebSocket, WebSock
 from fastapi.responses import JSONResponse
 import os
 import grpc
-from app.generated import nest_pb2_grpc, nest_pb2
-from app import analysis, database
+from app.generated import nest_pb2, nest_pb2_grpc
+import analysis, database
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -23,13 +23,23 @@ class Document(BaseModel):
     name: str
     age: int
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # 또는 프론트 주소
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
+def get_application() -> FastAPI:
+    application = FastAPI()
+
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=["*"]
+    )
+
+    return application
+
+
+app = get_application()
 @app.post("/test/insert")
 async def insert_db(document: Document):
     # Pydantic 모델을 dict로 변환
@@ -67,11 +77,12 @@ async def read_item(item_id: int, q: str = None):
 # WebSocket을 통한 실시간 음성 스트리밍 처리
 @app.websocket("/stt/ws")
 async def websocket_endpoint(websocket: WebSocket):
+    print("Client connected")
     await websocket.accept()
 
     # gRPC 채널 설정
     channel = grpc.insecure_channel('localhost:50051')  # 서버 주소
-    stub = nest_pb2_grpc.ClovaSpeechStub(channel)
+    stub = nest_pb2_grpc.NestServiceStub(channel)
 
     def audio_stream_generator(audio_data: bytes):
         yield nest_pb2.AudioChunk(audio_data=audio_data)
