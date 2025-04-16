@@ -9,5 +9,8 @@ class Settings(BaseSettings):
     MONGO_DB_URL: str
     CLOVA_API_SECRET_KEY: str  # 환경 변수에서 API 키를 읽어옵니다.
 
+    CLOVA_OCR_URL: str
+    CLOVA_OCR_SECRET_KEY: str
+
 settings = Settings()
 
