@@ -9,6 +9,8 @@ import grpc
 from app.generated import nest_pb2_grpc, nest_pb2
 from app import analysis, database
 
+from app.routers import documnt_router
+
 
 app = FastAPI()
 
@@ -113,6 +115,10 @@ async def upload_file(video: UploadFile = File(...), img: UploadFile = File(...)
 @app.get("/")
 def read_root():
     return {"message": "FastAPI server is running!"}
+
+
+
+app.include_router(documnt_router.router)
 
 # 서버 실행
 if __name__ == "__main__":
