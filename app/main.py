@@ -86,6 +86,7 @@ async def websocket_endpoint(websocket: WebSocket):
         "http://127.0.0.1:3000"
     ]
     if origin not in allowed_origins:
+        print(f"Blocked origin: {origin}")
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
