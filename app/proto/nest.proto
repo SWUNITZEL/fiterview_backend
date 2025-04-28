@@ -3,6 +3,7 @@ package nest;
 
 service NestService {
   rpc GetNest (NestRequest) returns (NestResponse);
+  rpc StreamingRecognize (stream AudioRequest) returns (stream AudioResponse);
 }
 
 message NestRequest {
@@ -11,4 +12,13 @@ message NestRequest {
 
 message NestResponse {
   string response_message = 1;
+}
+
+// 새로 추가
+message AudioRequest {
+  bytes audio_chunk = 1;
+}
+
+message AudioResponse {
+  string transcript = 1;
 }
