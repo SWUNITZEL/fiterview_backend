@@ -1,4 +1,6 @@
 from http.client import HTTPException
+
+import status
 from bson import ObjectId
 import uvicorn
 from pydantic import BaseModel
@@ -9,6 +11,7 @@ import grpc
 from app.generated import nest_pb2, nest_pb2_grpc
 import analysis, database
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import status
 
 
 app = FastAPI()
@@ -77,6 +80,15 @@ async def read_item(item_id: int, q: str = None):
 # WebSocket을 통한 실시간 음성 스트리밍 처리
 @app.websocket("/stt/ws")
 async def websocket_endpoint(websocket: WebSocket):
+    origin = websocket.headers.get('origin')
+    allowed_origins = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+    ]
+    if origin not in allowed_origins:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
     print("Client connected")
     await websocket.accept()
 
