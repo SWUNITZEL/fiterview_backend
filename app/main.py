@@ -13,6 +13,8 @@ import analysis, database
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import status
 
+from app.routers import documnt_router
+
 
 app = FastAPI()
 
@@ -145,6 +147,10 @@ async def upload_file(video: UploadFile = File(...), img: UploadFile = File(...)
 @app.get("/")
 def read_root():
     return {"message": "FastAPI server is running!"}
+
+
+
+app.include_router(documnt_router.router)
 
 # 서버 실행
 if __name__ == "__main__":

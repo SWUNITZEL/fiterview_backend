@@ -146,6 +146,10 @@ pyparsing==3.2.3
 python-dateutil==2.9.0.post0
     # via matplotlib
 python-dotenv==1.1.0
+<<<<<<< HEAD
+pydantic==2.10.6
+pdf2image
+=======
     # via
     #   -r requirements.in
     #   pydantic-settings
@@ -214,3 +218,5 @@ zipp==3.21.0
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
+
+pdf2image
