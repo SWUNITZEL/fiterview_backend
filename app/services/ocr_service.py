@@ -5,6 +5,8 @@ import asyncio
 from pdf2image import convert_from_bytes
 from io import BytesIO
 from app.config.config import settings
+import re
+
 
 CLOVA_OCR_URL = settings.CLOVA_OCR_URL
 CLOVA_SECRET_KEY =settings.CLOVA_OCR_SECRET_KEY
@@ -14,6 +16,25 @@ HEADERS = {
     "X-OCR-SECRET": CLOVA_SECRET_KEY
 }
 
+# 문자열 전처리 함수: 생기부 내용에 필요없는 문자열 삭제
+def extract_text(text):
+    # 맨 첫 장에 오는 생기부 다운로드 관련 문장 삭제
+    if (text.find("학교생활세부사항기록부") != -1):
+        pattern1 = rf'^.*?\b\w*인적\w*\b\s+\b\w+\b'
+        text = re.sub(pattern1, '', text, count=1)
+
+    else:
+        pattern1 = rf'^.*?\b\w*특기사항\w*\b'
+        text = re.sub(pattern1, '', text, count=1)
+
+    matches = list(re.finditer(rf'\b\w*고등학교\w*\b', text))
+    if matches:
+        last_match = matches[-1]
+        text = text[:last_match.start()]
+
+    return text.strip()
+
+# ocr
 async def send_ocr_request(img_bytes: bytes, page_number: int):
     request_json = {
         "version": "V2",
@@ -41,13 +62,18 @@ async def send_ocr_request(img_bytes: bytes, page_number: int):
                 fields = ocr_json["images"][0].get("fields", [])
                 texts = [field["inferText"] for field in fields]
                 full_text = " ".join(texts)
+                print("page:", page_number)
+                full_text = extract_text(full_text)         # 전처리 수행
+
                 return {"page": page_number, "text": full_text}
             else:
+                print("page:", page_number, f"    {response.status_code} - {response.text}")
                 return {
                     "page": page_number,
                     "text": f"Error: {response.status_code} - {response.text}"
                 }
         except Exception as e:
+            print("page:", page_number, "    errormessage: ", str(e))
             return {
                 "page": page_number,
                 "text": f"Exception: {str(e)}"
