@@ -12,6 +12,7 @@ database = client[settings.MONGO_DB_NAME]
 reports_collection = database['analysis_reports']
 contents_collection = database['report_contents']
 documents_collection = database['documents']
+answers_collection = database['answers']
 
 # 문서 삽입
 async def insert_document(collection, document):
