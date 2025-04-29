@@ -1,6 +1,6 @@
 from http.client import HTTPException
 
-import status
+# import status
 from bson import ObjectId
 import uvicorn
 from pydantic import BaseModel
@@ -9,12 +9,11 @@ from fastapi.responses import JSONResponse
 import os
 import grpc
 from app.generated import nest_pb2, nest_pb2_grpc
-import analysis, database
+from app import analysis, database
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import status
 
-from app.routers import documnt_router
-
+from app.routers import documnt_router, answer_router
 
 app = FastAPI()
 
@@ -149,8 +148,9 @@ def read_root():
     return {"message": "FastAPI server is running!"}
 
 
-
+# 라우터 추가
 app.include_router(documnt_router.router)
+app.include_router(answer_router.router)
 
 # 서버 실행
 if __name__ == "__main__":
