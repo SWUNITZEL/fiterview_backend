@@ -216,3 +216,6 @@ zipp==3.21.0
 # setuptools
 
 pdf2image
+
+konlpy
+mecab-python
