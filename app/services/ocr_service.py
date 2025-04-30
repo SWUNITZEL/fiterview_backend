@@ -4,7 +4,7 @@ import time
 import asyncio
 from pdf2image import convert_from_bytes
 from io import BytesIO
-from app.config.config import settings
+from app.core.config import settings
 import re
 
 

@@ -4,7 +4,7 @@ from app.generated import nest_pb2_grpc, nest_pb2
 from motor.motor_asyncio import AsyncIOMotorClient
 from collections import Counter
 from concurrent import futures
-from config.config import settings
+from app.core.config import settings
 
 # MongoDB 비동기 연결 설정
 client = AsyncIOMotorClient(settings.MONGO_DB_URL)
