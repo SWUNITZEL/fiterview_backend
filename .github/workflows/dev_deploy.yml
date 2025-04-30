@@ -46,6 +46,8 @@ jobs:
               sudo docker rm $CONTAINER_ID
             fi
             
+            sudo docker image prune -f
+            
             sudo docker pull ${{ env.DOCKER_IMAGE_NAME }}:latest
             sudo docker run -d -p 80:8000 \
               -e MONGO_DB_URL="${{ secrets.MONGO_DB_URL }}" \

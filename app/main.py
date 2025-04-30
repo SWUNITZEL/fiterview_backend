@@ -1,6 +1,5 @@
 from http.client import HTTPException
 
-# import status
 from bson import ObjectId
 import uvicorn
 from pydantic import BaseModel
@@ -8,42 +7,36 @@ from fastapi import FastAPI, File, UploadFile, HTTPException, WebSocket, WebSock
 from fastapi.responses import JSONResponse
 import os
 import grpc
-from app.generated import nest_pb2, nest_pb2_grpc
-from app import analysis, database
+from .generated import nest_pb2, nest_pb2_grpc
+from . import analysis, database
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import status
 
 from app.routers import documnt_router, answer_router
-
-app = FastAPI()
 
 # MongoDB 클라이언트 생성
 client = database.client
 db = database.database
 collection = db['test_collection']
 
+# FastAPI 앱 생성
+app = FastAPI()
+
+# CORS 설정
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"]
+)
+
 # 데이터 모델
 class Document(BaseModel):
     name: str
     age: int
 
-
-def get_application() -> FastAPI:
-    application = FastAPI()
-
-    application.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-        expose_headers=["*"]
-    )
-
-    return application
-
-
-app = get_application()
+# DB test API
 @app.post("/test/insert")
 async def insert_db(document: Document):
     # Pydantic 모델을 dict로 변환
@@ -81,18 +74,9 @@ async def read_item(item_id: int, q: str = None):
 # WebSocket을 통한 실시간 음성 스트리밍 처리
 @app.websocket("/stt/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    origin = websocket.headers.get('origin')
-    allowed_origins = [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000"
-    ]
-    if origin not in allowed_origins:
-        print(f"Blocked origin: {origin}")
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-        return
-
     print("Client connected")
-    await websocket.accept()
+
+    await websocket.accept()  # 연결 수락
 
     # gRPC 채널 설정
     channel = grpc.insecure_channel('localhost:50051')  # 서버 주소
