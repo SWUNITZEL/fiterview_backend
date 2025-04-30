@@ -11,6 +11,7 @@ database = client[settings.MONGO_DB_NAME]
 # 컬렉션 가져오기
 reports_collection = database['analysis_reports']
 contents_collection = database['report_contents']
+documents_collection = database['documents']
 
 # 문서 삽입
 async def insert_document(collection, document):

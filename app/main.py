@@ -11,6 +11,8 @@ from .generated import nest_pb2, nest_pb2_grpc
 from . import analysis, database
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.routers import documnt_router
+
 # MongoDB 클라이언트 생성
 client = database.client
 db = database.database
@@ -128,6 +130,10 @@ async def upload_file(video: UploadFile = File(...), img: UploadFile = File(...)
 @app.get("/")
 def read_root():
     return {"message": "FastAPI server is running!"}
+
+
+
+app.include_router(documnt_router.router)
 
 # 서버 실행
 if __name__ == "__main__":
