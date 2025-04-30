@@ -1,5 +1,9 @@
 FROM python:3.12
 
+# java 1.8버전 설치
+RUN apt-get install -y openjdk-8-jdk
+
+
 # 작업 디렉토리 설정
 WORKDIR /code
 
@@ -8,6 +12,11 @@ COPY ./requirements.txt /code/requirements.txt
 
 # requirements.txt 를 보고 모듈 전체 설치(-r)
 RUN pip install --no-cache-dir -r /code/requirements.txt
+
+# mecab 설치
+RUN cd /code && \
+    curl -s https://raw.githubusercontent.com/konlpy/konlpy/master/scripts/mecab.sh | bash -s
+
 
 # 애플리케이션 코드 복사
 COPY ./app /code/app
