@@ -1,11 +1,11 @@
-import json
 from motor.motor_asyncio import AsyncIOMotorClient
-#from config.config import settings
-from app.config.config import settings
+from .config.config import settings
 
 
 # MongoDB 연결 설정
-client = AsyncIOMotorClient(settings.MONGO_DB_URL)
+client = AsyncIOMotorClient(settings.MONGO_DB_URL,
+    tls=True,  # SSL 연결 사용
+    tlsAllowInvalidCertificates=True  )
 database = client[settings.MONGO_DB_NAME]
 
 # 컬렉션 가져오기
