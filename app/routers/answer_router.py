@@ -1,12 +1,9 @@
-from dns.resolver import Answer
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from app.services import answer_service
-from app import database
+from app.repository.answer_repository import *
 
 router = APIRouter()
-
-
 
 @router.post("/answer/analysis")
 async def answer_analysis(answer: str):
@@ -31,8 +28,7 @@ async def answer_analysis(answer: str):
 @router.get("/answer/analysis")
 async def test_get_answer():
     try:
-        documents_cursor = database.answers_collection.find()
-        documents = await documents_cursor.to_list(length=None)
+        documents = await get_all_answers()
 
         # _id가 ObjectId 타입이면 문자열로 변환
         for doc in documents:

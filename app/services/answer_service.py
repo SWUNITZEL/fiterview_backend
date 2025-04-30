@@ -1,6 +1,7 @@
 from konlpy.tag import Mecab
 from collections import Counter
-from app import database
+from app.repository.answer_repository import *
+
 
 # 어미 분석, 어휘 다양성 분석 서비스 함수
 async def analysis_answer(answer : str) :
@@ -32,8 +33,7 @@ async def analysis_answer(answer : str) :
     hesitant_endings = [word for word in predicates if word in ['같은데', '같아요', '같습니다', '듯 합니다', '느낌이에요']]
 
 
-    await database.insert_document(database.answers_collection,
-                                   {"lexical_analysis": final_result, "endings_analysis": hesitant_endings})
+    await insert_document({"lexical_analysis": final_result, "endings_analysis": hesitant_endings})
 
     return final_result, hesitant_endings
 
