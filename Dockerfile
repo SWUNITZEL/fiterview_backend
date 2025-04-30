@@ -1,8 +1,5 @@
 FROM python:3.12
 
-# java 1.8버전 설치
-RUN apt-get update 
-RUN apt-get install -y openjdk-8-jdk
 
 
 # 작업 디렉토리 설정
