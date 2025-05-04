@@ -3,8 +3,7 @@ from fastapi.responses import JSONResponse
 from app.services.ocr_service import process_pdf_ocr
 from pdf2image.exceptions import PDFInfoNotInstalledError
 from PIL import UnidentifiedImageError
-
-import app.database
+from app.repository.document_repository import *
 
 router = APIRouter()
 
@@ -19,7 +18,7 @@ async def convert_to_text(file: UploadFile = File(...)):
 
         # text만 모아서 하나의 문자열로 만들기
         combined_text = ''.join(item['text'] for item in result)
-        await app.database.insert_document(app.database.documents_collection,  {"content": combined_text} )
+        await insert_document({"content": combined_text})
 
         return JSONResponse(content={"texts": result})
 
@@ -38,8 +37,7 @@ async def convert_to_text(file: UploadFile = File(...)):
 @router.get("/documents/ocr")
 async def test_get_document():
     try:
-        documents_cursor = app.database.documents_collection.find()
-        documents = await documents_cursor.to_list(length=None)
+        documents = await get_all_documents()
 
         # _id가 ObjectId 타입이면 문자열로 변환
         for doc in documents:
