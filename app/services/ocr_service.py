@@ -20,12 +20,20 @@ HEADERS = {
 def extract_text(text):
     # 맨 첫 장에 오는 생기부 다운로드 관련 문장 삭제
     if (text.find("학교생활세부사항기록부") != -1):
-        pattern1 = rf'^.*?\b\w*인적\w*\b\s+\b\w+\b'
-        text = re.sub(pattern1, '', text, count=1)
+        pattern = rf'^.*?\b\w*학교생활세부사항기록부\(\w*\b\)'
+        text = re.sub(pattern, '', text, count=1)
 
-    else:
-        pattern1 = rf'^.*?\b\w*특기사항\w*\b'
-        text = re.sub(pattern1, '', text, count=1)
+    elif(text.find("특기사항") != -1):
+        pattern = rf'^.*?\b\w*특기사항'
+        text = re.sub(pattern, '', text, count=1)
+
+    else :
+        pattern = ""
+        if (text.find("정부24") != -1):
+            pattern = rf'^.*?\b\w*정부24\S*\b\s+\S+'
+        else :
+            pattern = rf'^.*?\b\w*\)'
+        text = re.sub(pattern, '', text, count=1)
 
     matches = list(re.finditer(rf'\b\w*고등학교\w*\b', text))
     if matches:
