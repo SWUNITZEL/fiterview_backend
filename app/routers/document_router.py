@@ -17,10 +17,25 @@ async def convert_to_text(file: UploadFile = File(...)):
         result = await process_pdf_ocr(content)
 
         # text만 모아서 하나의 문자열로 만들기
-        combined_text = ''.join(item['text'] for item in result)
-        await insert_document({"content": combined_text})
+        # combined_text = ''.join(item['text'] for item in result)
 
-        return JSONResponse(content={"texts": result})
+        combined_text = ''
+        combined_grades = {}
+        combined_features = ''
+        for item in result:
+            combined_text += item['text']
+
+            for subject, ranks in item.get('grades', {}).items():
+                if subject not in combined_grades:
+                    combined_grades[subject] = []
+                combined_grades[subject].extend(ranks)
+
+            if item.get('features'):
+                combined_features += item['features']
+
+        await insert_document({"content": combined_text, "grades": combined_grades, "features": combined_features})
+
+        return HTTPException(status_code=200, detail="ocr success")
 
     except PDFInfoNotInstalledError:
         raise HTTPException(status_code=500, detail="Poppler is not installed or not found in PATH.")
