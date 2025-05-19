@@ -2,7 +2,7 @@ import numpy as np
 
 # 여러 프레임의 얼굴 랜드마크에서 평균 입꼬리 변화를 기반으로 웃음 여부를 판단합니다.
 # 웃는 정도를 계산하여 점수화한 평균값과 웃었는지의 여부를 반환합니다.
-def detect_smile_from_video(face_landmarks: list[np.ndarray], threshold: float = 0.05) -> dict:
+def detect_smile_from_video(face_landmarks: list[np.ndarray], threshold: float = 0.35) -> dict:
     smile_scores = []
 
     for landmarks in face_landmarks:
@@ -29,7 +29,7 @@ def detect_smile_from_video(face_landmarks: list[np.ndarray], threshold: float =
         return {"smile_score": 0.0, "is_smiling": False}
 
     avg_smile_score = round(np.mean(smile_scores), 4)
-    is_smiling = avg_smile_score > threshold #threshold는 0.05
+    is_smiling = avg_smile_score > threshold # threshold는 0.05
 
     return {
         "smile_score": avg_smile_score,
