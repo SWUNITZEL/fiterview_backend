@@ -1,38 +1,30 @@
 import os
 from typing import List
+import tempfile
 
-from fastapi import APIRouter, UploadFile, File, HTTPException, Request
+from fastapi import APIRouter, UploadFile, File, HTTPException, Request, Path
 
 router = APIRouter()
 
-SAVE_PATH = os.path.join(os.getcwd(), "received_video")
-
-@router.post("/analyze/videos")
-async def analyze_videos(request: Request):
-    body = await request.body()
-    print(f"요청 본문 크기: {len(body)} 바이트")
-
-    form = await request.form()
-    files: List[UploadFile] = []
-
-    # FormData에 포함된 모든 항목 중 UploadFile인 것만 추출
-    for key, value in form.items():
-        if isinstance(value, UploadFile):
-            files.append(value)
-
-    analysis_results = []
-
+@router.post("/interview/{interviewId}/video/analyze")
+async def analyze_videos(interviewId: int, files: List[UploadFile] = File(...)):
     for file in files:
-        # 영상 저장
-        file_path = os.path.join(SAVE_PATH, file.filename)
-        with open(file_path, "wb") as f:
+        # 고유한 temp 파일 경로 생성
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_file:
             content = await file.read()
-            f.write(content)
+            temp_file.write(content)
+            temp_path = temp_file.name
 
-        print(f"저장 완료: {file_path}")
-        # 분석 (여기서 MediaPipe 분석 함수 호출)
+        # 분석 함수 호출
 
-        # 저장 파일 삭제 (분석 후 삭제를 원할 경우 주석 해제)
-        # os.remove(file_path)
+        # 분석 후 삭제
+        os.remove(temp_path)
 
-    return {"results": analysis_results}
+    return {
+        "isSuccess": True,
+        "code": "COMMON200",
+        "message": "성공입니다.",
+        "result": {
+            "interviewId": interviewId
+        }
+    }
