@@ -55,4 +55,5 @@ jobs:
               -e CLOVA_API_SECRET_KEY="${{ secrets.CLOVA_API_SECRET_KEY }}" \
               -e CLOVA_OCR_URL="${{ secrets.CLOVA_OCR_URL }}" \
               -e CLOVA_OCR_SECRET_KEY="${{ secrets.CLOVA_OCR_SECRET_KEY }}" \
+              -e JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}" \
               --name ${{ env.CONTAINER_NAME }} ${{ env.DOCKER_IMAGE_NAME }}:latest
