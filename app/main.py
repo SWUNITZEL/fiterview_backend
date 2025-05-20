@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.websockets import WebSocket
 
-from app.routers import document_router, answer_router, test_router, upload_router
+from app.routers import document_router, answer_router, test_router, upload_router, user_router
 from app.websocket.stt_handler import websocket_stt
 
 app = FastAPI()
@@ -14,6 +14,7 @@ app.include_router(test_router.router)
 app.include_router(answer_router.router)
 app.include_router(document_router.router)
 app.include_router(upload_router.router)
+app.include_router(user_router.router)
 
 # CORS 설정
 app.add_middleware(
