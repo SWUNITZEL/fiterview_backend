@@ -26,9 +26,9 @@ app.add_middleware(
 )
 
 # WebSocket
-@app.websocket("/stt/ws")
-async def websocket_route(websocket: WebSocket):
-    await websocket_stt(websocket)
+@app.websocket("/interview/{intreviewId}")
+async def websocket_route(websocket: WebSocket, interviewId: int):
+    await websocket_stt(websocket, interviewId)
 
 # 서버 실행 확인용
 @app.get("/")
