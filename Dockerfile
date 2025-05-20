@@ -19,8 +19,5 @@ RUN cd /code && \
 # 애플리케이션 코드 복사
 COPY ./app /code/app
 
-# received_video와 received_audio 디렉토리 생성
-RUN mkdir -p /code/received_video /code/received_audio
-
 # 실행
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
