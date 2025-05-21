@@ -15,7 +15,7 @@ async def websocket_stt(websocket: WebSocket, intreviewId: int):
             audio_data = await websocket.receive_bytes()
 
             # 임시 파일로 저장
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_file:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_file:
                 temp_file.write(audio_data)
                 temp_path = temp_file.name
 

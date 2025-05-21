@@ -11,8 +11,8 @@ class CommonResponse(GenericModel, Generic[T]):
 
     @classmethod
     def success_response(cls, message: str, data: Optional[T] = None):
-        return cls(success=True, message=message, data=data)
+        return cls(success=True, message=message, result=data)
 
     @classmethod
     def fail_response(cls, message: str, data: Optional[T] = None):
-        return cls(success=False, message=message, data=data)
+        return cls(success=False, message=message, daresultta=data)

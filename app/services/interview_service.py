@@ -1,0 +1,43 @@
+import os
+import tempfile
+from datetime import datetime
+
+from fastapi import UploadFile
+from app.core.exceptions.base import AppException
+from app.models.interview.interview_waiting_room import InterviewWaitingRoomResponse
+from app.repository.interview_repository import insert_interview
+from app.services.land_mark_service import LandmarkService
+
+
+class InterviewService:
+
+    @staticmethod
+    async def process_landmark(file: UploadFile, combine_id: int) -> InterviewWaitingRoomResponse:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_file:
+            content = await file.read()
+            temp_file.write(content)
+            temp_path = temp_file.name
+
+        try:
+            ear, avg_iris_ratio = LandmarkService.calibrate_gaze_points(temp_path)
+            if ear is None or avg_iris_ratio is None:
+                raise AppException(status_code=400, message="기준값 추출에 실패했습니다.")
+
+            doc = {
+                "combineId": combine_id,
+                "ear": ear,
+                "smileThreshold": 0.35,
+                "avgIrisRatio": avg_iris_ratio,
+                "createdAt": datetime.utcnow()
+            }
+
+            inserted_id = await insert_interview(doc)
+
+            return InterviewWaitingRoomResponse(
+                interviewId=str(inserted_id),
+                ear=ear,
+                smileThreshold=0.35,
+                avgIrisRatio=avg_iris_ratio
+            )
+        finally:
+            os.remove(temp_path)
