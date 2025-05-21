@@ -1,9 +1,9 @@
-import grpc
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.websockets import WebSocket
 
+from app.core.response import CommonResponse
 from app.routers import document_router, answer_router, test_router, upload_router, user_router
 from app.websocket.stt_handler import websocket_stt
 
@@ -34,7 +34,7 @@ async def websocket_route(websocket: WebSocket, interviewId: int):
 # 서버 실행 확인용
 @app.get("/")
 def read_root():
-    return {"message": "FastAPI server is running!"}
+    return CommonResponse.success_response("server is running")
 
 # 서버 실행
 if __name__ == "__main__":
