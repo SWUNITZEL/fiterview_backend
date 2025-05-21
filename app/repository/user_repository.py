@@ -1,5 +1,5 @@
 from app.core.database import database
-from app.models.User import User
+from app.models.user_model import User
 
 collection = database['user']
 

@@ -4,15 +4,17 @@ from datetime import datetime
 
 from fastapi import UploadFile
 from app.core.exceptions.base import AppException
-from app.models.interview.interview_waiting_room import InterviewWaitingRoomResponse
-from app.repository.interview_repository import insert_interview
+from app.models.interview_model import Interview
+from app.repository.interview_repository import InterviewRepository
+from app.schemas.response.interview_waiting_room_response import InterviewWaitingRoomResponse
 from app.services.land_mark_service import LandmarkService
 
 
 class InterviewService:
+    repo = InterviewRepository()
 
     @staticmethod
-    async def process_landmark(file: UploadFile, combine_id: int) -> InterviewWaitingRoomResponse:
+    async def process_landmark(file: UploadFile, combine_id: str) -> InterviewWaitingRoomResponse:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_file:
             content = await file.read()
             temp_file.write(content)
@@ -23,15 +25,15 @@ class InterviewService:
             if ear is None or avg_iris_ratio is None:
                 raise AppException(status_code=400, message="기준값 추출에 실패했습니다.")
 
-            doc = {
-                "combineId": combine_id,
-                "ear": ear,
-                "smileThreshold": 0.35,
-                "avgIrisRatio": avg_iris_ratio,
-                "createdAt": datetime.utcnow()
-            }
+            interview = Interview(
+                combineId=combine_id,
+                ear=ear,
+                smileThreshold=0.35,
+                avgIrisRatio=avg_iris_ratio,
+                createdAt=datetime.utcnow()
+            )
 
-            inserted_id = await insert_interview(doc)
+            inserted_id = await InterviewService.repo.insert(interview)
 
             return InterviewWaitingRoomResponse(
                 interviewId=str(inserted_id),
