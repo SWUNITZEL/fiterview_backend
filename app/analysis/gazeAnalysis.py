@@ -70,9 +70,8 @@ def calculate_gaze_points(face_landmarks, img_h, img_w):
 
 
 # 사진을 통해 기준 데이터 구하는 메서드
-def calibrate_gaze_points() :
+def calibrate_gaze_points(image_path: str) :
     # 사진 받아오기
-    image_path = "business-person.png"
     image = cv2.imread(image_path)
     if image is None:
         print("Image not found!")
@@ -89,9 +88,7 @@ def calibrate_gaze_points() :
 
     ear, avg_iris_ratio = calculate_gaze_points(face_landmarks, image.shape[0], image.shape[1])
 
-    # mongoDB에 저장
-    calibration_data_repository.insert_one({"ear": ear, "avg_iris_ratio": avg_iris_ratio})
-
+    return ear, avg_iris_ratio
 
 
 datas = calibration_data_repository.get_all_calibration_data()
