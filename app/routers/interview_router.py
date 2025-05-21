@@ -8,7 +8,7 @@ router = APIRouter()
 @router.post("/interview/waiting-room")
 async def get_landmarks(
     file: UploadFile = File(...),
-    combineId: int = Form(...)
+    combineId: str = Form(...)
 ):
     result = await InterviewService.process_landmark(file, combineId)
 

@@ -1,16 +1,30 @@
+from typing import Optional
+
+from bson import ObjectId
+
 from app.core.database import database
+from app.models.interview_model import Interview
 
-collection = database['interview']
+interview_collection = database['interview']
 
-async def insert_interview(doc: dict):
-    result = await collection.insert_one(doc)
-    return result.inserted_id  # ObjectId 반환
+class InterviewRepository:
+    def __init__(self):
+        self.collection = interview_collection
 
-async def find_interview(query: dict):
-    return await collection.find_one(query)
+    async def insert(self, interview: Interview) -> str:
+        result = await self.collection.insert_one(interview.model_dump())
+        return str(result.inserted_id)
 
-async def update_interview(id, update_fields):
-    return await collection.update_one({"_id": id}, {"$set": update_fields})
+    async def find_by_id(self, id: str) -> Optional[dict]:
+        return await self.collection.find_one({"_id": ObjectId(id)})
 
-async def delete_interview(id):
-    return await collection.delete_one({"_id": id})
+    async def update(self, id: str, update_fields: dict) -> bool:
+        result = await self.collection.update_one(
+            {"_id": ObjectId(id)},
+            {"$set": update_fields, "$currentDate": {"updatedAt": True}}
+        )
+        return result.modified_count > 0
+
+    async def delete(self, id: str) -> bool:
+        result = await self.collection.delete_one({"_id": ObjectId(id)})
+        return result.deleted_count > 0

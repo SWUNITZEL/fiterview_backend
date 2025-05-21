@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from typing import Annotated
-from app.models.User import User
+from app.models.user_model import User
 from app.services.auth_service import get_current_user
 
 router = APIRouter()
