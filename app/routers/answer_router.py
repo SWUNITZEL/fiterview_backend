@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from app.services import answer_service
 from app.repository.answer_repository import *
+from app.services.answer_service import AnswerService
 
 router = APIRouter()
 
@@ -14,7 +14,7 @@ async def answer_analysis(answer: str):
             raise HTTPException(status_code=404, detail="answer is empty.")
 
         # 분석 함수 실행
-        final_result, hesitant_endings = await answer_service.analysis_answer(answer)
+        final_result, hesitant_endings = await AnswerService.analysis_answer(answer)
 
 
         return JSONResponse("ok")
