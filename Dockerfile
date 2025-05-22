@@ -16,6 +16,9 @@ RUN pip install requests
 RUN cd /code && \
     curl -s https://raw.githubusercontent.com/konlpy/konlpy/master/scripts/mecab.sh | bash -s
 
+RUN apt-get update && \
+    apt-get install -y libgl1-mesa-glx \
+
 # 애플리케이션 코드 복사
 COPY ./app /code/app
 
