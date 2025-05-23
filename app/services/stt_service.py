@@ -1,12 +1,12 @@
-import os
-
 import requests
 import json
 
 from app.core.config import settings
+from app.repository.answer_repository import AnswerRepository
 
 
 class SttService:
+    repo = AnswerRepository()
     # Clova Speech invoke URL
     invoke_url = settings.CLOVA_SPEECH_URL
     # Clova Speech secret key
@@ -132,8 +132,8 @@ class SttService:
                              url=self.invoke_url + '/recognizer/object-storage',
                              data=json.dumps(request_body).encode('UTF-8'))
 
-    def req_upload(self, file, completion, callback=None, userdata=None, forbiddens=None, boostings=None,
-                   wordAlignment=True, fullText=True, diarization=None, sed=None):
+    async def req_upload(self, file, completion, callback=None, userdata=None, forbiddens=None, boostings=None,
+                   wordAlignment=True, fullText=True, diarization=None, sed=None, interview_id: str = "", question_id: str = ""):
         request_body = {
             'language': 'ko-KR',
             'completion': completion,
@@ -156,4 +156,13 @@ class SttService:
             'params': (None, json.dumps(request_body, ensure_ascii=False).encode('UTF-8'), 'application/json')
         }
         response = requests.post(headers=headers, url=self.invoke_url + '/recognizer/upload', files=files)
-        return response
+        sentence = json.loads(response.text).get("segments", [])[0].get("text")
+        from app.models.answer_model import Answer
+        answer = Answer(
+            interview_id=interview_id,
+            question_id=question_id,
+            answer=sentence
+        )
+        answer_id = await SttService.repo.insert_document(answer)
+
+        return sentence, answer_id

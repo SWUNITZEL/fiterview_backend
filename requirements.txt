@@ -221,3 +221,4 @@ konlpy
 mecab-python
 requests
 pyjwt
+boto3

@@ -1,22 +1,33 @@
 import os
-from app.repository.video_repository import update_video_analysis
-from app import analysis
 
-UPLOAD_DIR = './uploads/'
+from app.core.config import settings
+import boto3
 
-async def save_upload_files(video, img):
-    video_path = os.path.join(UPLOAD_DIR, video.filename)
-    img_path = os.path.join(UPLOAD_DIR, img.filename)
-
-    with open(video_path, "wb") as vf:
-        vf.write(await video.read())
-    with open(img_path, "wb") as imf:
-        imf.write(await img.read())
-
-    return video_path, img_path
+from app.repository.answer_repository import AnswerRepository
 
 
-async def process_video_analysis(q_num: int):
-    result_json = analysis()
-    update_success = await update_video_analysis(result_json, q_num)
-    return update_success, result_json
+class VideoService:
+    repo = AnswerRepository()
+
+    client_s3 = boto3.client(
+        's3',
+        aws_access_key_id=settings.AWS_ACCESS_KEY,
+        aws_secret_access_key=settings.AWS_SECRET_KEY
+    )
+
+    @staticmethod
+    async def upload_to_s3(file_path: str, interview_id: str, answer_id: str):
+        s3_key = f"interview/{interview_id}/{answer_id}/{os.path.basename(file_path)}"
+        bucket_name = settings.S3_BUCKET_NAME
+
+        VideoService.client_s3.upload_file(
+            Filename=file_path,
+            Bucket=bucket_name,
+            Key=s3_key,
+            ExtraArgs={
+                "ContentType": "video/webm"
+            }
+        )
+        url = f"s3://{bucket_name}/{s3_key}"
+        print(f"✅ S3 업로드 완료: {url}")
+        await VideoService.repo.update_answer(answer_id, {"video_url": url})

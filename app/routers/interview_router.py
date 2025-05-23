@@ -8,8 +8,8 @@ router = APIRouter()
 @router.post("/interview/waiting-room")
 async def get_landmarks(
     file: UploadFile = File(...),
-    combineId: str = Form(...)
+    combine_id: str = Form(..., alias="combineId")
 ):
-    result = await InterviewService.process_landmark(file, combineId)
+    result = await InterviewService.process_landmark(file, combine_id)
 
     return CommonResponse.success_response("랜드 마크 기준점 계산 성공", result)

@@ -36,7 +36,7 @@ class InterviewService:
             inserted_id = await InterviewService.repo.insert(interview)
 
             return InterviewWaitingRoomResponse(
-                interviewId=str(inserted_id),
+                interviewId=inserted_id,
                 ear=ear,
                 smileThreshold=0.35,
                 avgIrisRatio=avg_iris_ratio
