@@ -4,16 +4,16 @@ from pydantic import BaseModel
 from datetime import datetime
 
 class Interview(BaseModel):
-    combineId: Optional[str] = None
-    userId: Optional[str] = None
-    gestureScore: Optional[float] = 0.0
-    expressionScore: Optional[float] = 0.0
-    postureScore: Optional[float] = 0.0
-    sttScore: Optional[float] = 0.0
-    pitchScore: Optional[float] = 0.0
-    totalScore: Optional[float] = 0.0
+    combine_id: Optional[str] = None
+    user_id: Optional[str] = None
+    gesture_score: Optional[float] = 0.0
+    expression_score: Optional[float] = 0.0
+    posture_score: Optional[float] = 0.0
+    stt_score: Optional[float] = 0.0
+    pitch_score: Optional[float] = 0.0
+    total_score: Optional[float] = 0.0
     ear: Optional[float] = 0.0
-    smileThreshold: Optional[float] = 0.0
-    avgIrisRatio: Optional[float] = 0.0
-    createdAt: Optional[datetime] = None
-    updatedAt: Optional[datetime] = None
+    smile_threshold: Optional[float] = 0.0
+    avg_iris_ratio: Optional[float] = 0.0
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None

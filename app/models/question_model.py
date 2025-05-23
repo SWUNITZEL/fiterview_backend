@@ -4,9 +4,9 @@ from pydantic import BaseModel
 from datetime import datetime
 
 class Question(BaseModel):
-    interviewId: Optional[str] = None
+    interview_id: Optional[str] = None
     content: Optional[str] = None
     category: Optional[str] = None
     attribute: Optional[str] = None
-    createdAt: Optional[datetime] = None
-    updatedAt: Optional[datetime] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
