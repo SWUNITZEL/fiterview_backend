@@ -3,8 +3,10 @@ from collections import Counter
 from app.repository.answer_repository import *
 
 class AnswerService:
+    repo = AnswerRepository()
+
     # 어미 분석, 어휘 다양성 분석 서비스 함수
-    async def analysis_answer(answer : str) :
+    async def analysis_answer(answer_id: str, answer: str) :
         m = Mecab()
 
         # Mecab의 전체 품사 태깅 결과 확인
@@ -33,8 +35,8 @@ class AnswerService:
         hesitant_endings = [word for word in predicates if word in ['같은데', '같아요', '같습니다', '듯 합니다', '느낌이에요']]
 
 
-        await insert_document({"lexical_analysis": final_result, "endings_analysis": hesitant_endings})
-
+        await AnswerService.repo.update_answer(answer_id, {"lexical_analysis": final_result, "endings_analysis": hesitant_endings})
+        print("✅ 분석 후 저장 완료")
         return final_result, hesitant_endings
 
 

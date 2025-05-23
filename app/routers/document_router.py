@@ -1,5 +1,4 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from fastapi.responses import JSONResponse
 from app.services.ocr_service import process_pdf_ocr
 from pdf2image.exceptions import PDFInfoNotInstalledError
 from PIL import UnidentifiedImageError

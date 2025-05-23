@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     CLOVA_OCR_SECRET_KEY: str
     JWT_SECRET_KEY: str
 
+    AWS_ACCESS_KEY: str
+    AWS_SECRET_KEY: str
+    S3_BUCKET_NAME: str
+
 
 settings = Settings()
 

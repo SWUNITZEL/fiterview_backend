@@ -7,7 +7,7 @@ from app.core.exceptions.base import AppException
 from app.core.exceptions.handlers import app_exception_handler
 from app.core.response import CommonResponse
 from app.routers import document_router, answer_router, test_router, user_router, interview_router
-from app.websocket.stt_handler import websocket_stt
+from app.websocket.interview_websocket import websocket_interview
 
 app = FastAPI()
 
@@ -16,7 +16,6 @@ app.add_exception_handler(AppException, app_exception_handler)
 
 # 라우터 등록
 app.include_router(test_router.router)
-app.include_router(answer_router.router)
 app.include_router(document_router.router)
 app.include_router(user_router.router)
 app.include_router(interview_router.router)
@@ -32,9 +31,9 @@ app.add_middleware(
 )
 
 # WebSocket
-@app.websocket("/interview/{interviewId}")
-async def websocket_route(websocket: WebSocket, interviewId: int):
-    await websocket_stt(websocket, interviewId)
+@app.websocket("/interview/{interview_id}")
+async def websocket_route(websocket: WebSocket, interview_id: str):
+    await websocket_interview(websocket, interview_id)
 
 # 서버 실행 확인용
 @app.get("/")
