@@ -26,11 +26,11 @@ class InterviewService:
                 raise AppException(status_code=400, message="기준값 추출에 실패했습니다.")
 
             interview = Interview(
-                combineId=combine_id,
+                combine_id=combine_id,
                 ear=ear,
-                smileThreshold=0.35,
-                avgIrisRatio=avg_iris_ratio,
-                createdAt=datetime.utcnow()
+                smile_threshold=0.35,
+                avg_iris_ratio=avg_iris_ratio,
+                created_at=datetime.utcnow()
             )
 
             inserted_id = await InterviewService.repo.insert(interview)
