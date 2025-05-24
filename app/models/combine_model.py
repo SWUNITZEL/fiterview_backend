@@ -10,6 +10,6 @@ class Combine(BaseModel):
     department: Optional[str] = None
     interview_date: Optional[datetime] = None
     question_count: Optional[int] = 0
-    persona: Optional[str] = 0.0
+    persona: Optional[list[str]] = 0.0
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None

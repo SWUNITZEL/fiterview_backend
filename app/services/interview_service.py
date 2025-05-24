@@ -33,10 +33,10 @@ class InterviewService:
                 created_at=datetime.utcnow()
             )
 
-            inserted_id = await InterviewService.repo.insert(interview)
+            new_interview_id = await InterviewService.repo.insert(interview)
 
             return InterviewWaitingRoomResponse(
-                interviewId=inserted_id,
+                interviewId=new_interview_id,
                 ear=ear,
                 smileThreshold=0.35,
                 avgIrisRatio=avg_iris_ratio
