@@ -1,10 +1,18 @@
 from app.core.database import database
+from app.models.document_model import Document
 
-collection = database['documents']
+document_collection = database['documents']
 
-async def insert_document(doc: dict):
-    return await collection.insert_one(doc)
+class DocumentRepository:
 
-async def get_all_documents():
-    cursor = collection.find()
-    return await cursor.to_list(length=None)
+    def __init__(self):
+        self.collection = document_collection
+
+
+    async def insert_document(self, doc: Document):
+        return await self.collection.insert_one(doc.model_dump())
+
+
+    async def get_all_documents(self):
+        cursor = self.collection.find()
+        return await cursor.to_list(length=None)
