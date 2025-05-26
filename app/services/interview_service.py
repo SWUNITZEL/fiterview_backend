@@ -21,14 +21,14 @@ class InterviewService:
             temp_path = temp_file.name
 
         try:
-            ear, avg_iris_ratio = LandmarkService.calibrate_gaze_points(temp_path)
-            if ear is None or avg_iris_ratio is None:
+            ear, avg_iris_ratio, smile_point = LandmarkService.calibrate_gaze_points(temp_path)
+            if ear is None or avg_iris_ratio is None or smile_point is None:
                 raise AppException(status_code=400, message="기준값 추출에 실패했습니다.")
 
             interview = Interview(
                 combine_id=combine_id,
                 ear=ear,
-                smile_threshold=0.35,
+                smile_threshold=smile_point,
                 avg_iris_ratio=avg_iris_ratio,
                 created_at=datetime.utcnow()
             )
@@ -38,7 +38,7 @@ class InterviewService:
             return InterviewWaitingRoomResponse(
                 interviewId=new_interview_id,
                 ear=ear,
-                smileThreshold=0.35,
+                smileThreshold=smile_point,
                 avgIrisRatio=avg_iris_ratio
             )
         finally:

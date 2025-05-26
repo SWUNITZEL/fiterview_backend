@@ -27,8 +27,9 @@ class LandmarkService:
         face_landmarks = results.multi_face_landmarks[0]
 
         ear, avg_iris_ratio = LandmarkService.calculate_gaze_points(face_landmarks, image.shape[0], image.shape[1])
+        smile_point = LandmarkService.calculate_smile_points(face_landmarks)
 
-        return ear, avg_iris_ratio
+        return ear, avg_iris_ratio, smile_point
 
     # 눈의 종횡비와 동공 위치를 비율로 계산한 값을 반환
     @staticmethod
@@ -70,3 +71,23 @@ class LandmarkService:
         avg_iris_ratio = (left_iris_ratio + right_iris_ratio) / 2
 
         return ear, avg_iris_ratio
+
+    # 표정 분석을 위한 기준점 계산
+    @staticmethod
+    def calculate_smile_points(face_landmarks):
+        landmarks = face_landmarks.landmark
+
+        # 기준점: 코 밑 ref_y
+        ref_y = landmarks[1].y
+
+        # 코 밑과 턱 끝 사이의 거리
+        face_height = landmarks[152].y - landmarks[1].y
+        left_mouth = landmarks[61].y
+        right_mouth = landmarks[291].y
+
+        left_point = (left_mouth - ref_y) / face_height
+        right_point = (right_mouth - ref_y) / face_height
+
+        smile_point = (left_point + right_point) / 2
+        return smile_point
+
