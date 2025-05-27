@@ -39,6 +39,7 @@ def build_prompt(question: str, answer: str, major: str) -> str:
 
 {example}
 
+
 아래 형식에 맞춰 작성하세요:
 
 Step 1. 분석:

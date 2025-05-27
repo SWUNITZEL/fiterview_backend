@@ -19,6 +19,5 @@ class Settings(BaseSettings):
     S3_BUCKET_NAME: str
     GPT_API_KEY: str
 
-
 settings = Settings()
 
