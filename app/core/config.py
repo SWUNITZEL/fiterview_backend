@@ -17,7 +17,9 @@ class Settings(BaseSettings):
     AWS_ACCESS_KEY: str
     AWS_SECRET_KEY: str
     S3_BUCKET_NAME: str
+    AWS_REGION: str
     GPT_API_KEY: str
+
 
 settings = Settings()
 
