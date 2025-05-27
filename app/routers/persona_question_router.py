@@ -1,11 +1,12 @@
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
-from app.services.ocr_service import process_pdf_ocr
+from app.services.ocr_service import OCRService
 from app.services.persona_question_service import generate_interview_questions
 from app.services.pdf_service import PDFService
 from app.repository.question_repository import QuestionRepository
 
 router = APIRouter()
 question_repo = QuestionRepository()
+ocr_service = OCRService()
 
 @router.post("/interview/persona/question")
 async def generate_questions_from_pdf(
@@ -21,7 +22,7 @@ async def generate_questions_from_pdf(
         s3_url = await PDFService.upload_to_s3(content, file.filename)
 
         # OCR 처리
-        ocr_result = await process_pdf_ocr(content)
+        ocr_result = await ocr_service.process_pdf_ocr(content)
         document_text = "\n".join(item["text"] for item in ocr_result if item.get("text", "").strip())
 
         if not document_text.strip():
