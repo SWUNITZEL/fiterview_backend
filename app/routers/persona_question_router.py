@@ -2,10 +2,10 @@ from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from app.services.ocr_service import process_pdf_ocr
 from app.services.persona_question_service import generate_interview_questions
 from app.services.pdf_service import PDFService
-from app.repository.mongo_repository import save_questions_to_mongo
+from app.repository.question_repository import QuestionRepository
 
 router = APIRouter()
-
+question_repo = QuestionRepository()
 
 @router.post("/interview/persona/question")
 async def generate_questions_from_pdf(
@@ -30,8 +30,8 @@ async def generate_questions_from_pdf(
         # 질문 생성
         questions = await generate_interview_questions(document_text, persona_label, major)
 
-        # (추가) MongoDB 저장
-        question_ids = await save_questions_to_mongo(
+        # MongoDB에 저장
+        question_ids = await question_repo.save_questions(
             persona=persona_label,
             major=major,
             questions=questions
@@ -45,4 +45,5 @@ async def generate_questions_from_pdf(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 

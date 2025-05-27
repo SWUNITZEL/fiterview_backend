@@ -6,7 +6,9 @@ from starlette.websockets import WebSocket
 from app.core.exceptions.base import AppException
 from app.core.exceptions.handlers import app_exception_handler
 from app.core.response import CommonResponse
-from app.routers import document_router, answer_router, test_router, user_router, interview_router
+from app.routers import (document_router, answer_router, test_router, user_router, interview_router,
+                         passage_feedback_router,
+                         selfinfo_feedback_router, persona_question_router)
 from app.websocket.interview_websocket import websocket_interview
 
 app = FastAPI()
@@ -19,6 +21,11 @@ app.include_router(test_router.router)
 app.include_router(document_router.router)
 app.include_router(user_router.router)
 app.include_router(interview_router.router)
+#app.include_router(answer_router.router)
+app.include_router(document_router.router)
+#app.include_router(passage_feedback_router.router)
+#app.include_router(selfinfo_feedback_router.router)
+app.include_router(persona_question_router.router)
 
 # CORS 설정
 app.add_middleware(
