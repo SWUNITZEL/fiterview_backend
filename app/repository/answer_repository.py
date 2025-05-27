@@ -23,3 +23,6 @@ class AnswerRepository:
             {"$set": update_data}
         )
         return result.modified_count
+
+    async def get_answer_id(self, answer_id: str):
+        return await self.collection.find_one({"_id": ObjectId(answer_id)})
