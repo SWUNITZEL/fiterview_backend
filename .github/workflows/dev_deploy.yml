@@ -48,22 +48,18 @@ jobs:
             
             sudo docker image prune -f
             
-            if sudo docker pull ${{ env.DOCKER_IMAGE_NAME }}:latest; then
+            sudo docker pull ${{ env.DOCKER_IMAGE_NAME }}:latest;
             
-              sudo docker run -d -p 80:8000 \
-                -e MONGO_DB_URL="${{ secrets.MONGO_DB_URL }}" \
-                -e MONGO_DB_NAME="${{ secrets.MONGO_DB_NAME }}" \
-                -e CLOVA_SPEECH_SECRET_KEY="${{ secrets.CLOVA_SPEECH_SECRET_KEY }}" \
-                -e CLOVA_SPEECH_URL="${{ secrets.CLOVA_SPEECH_URL }}" \
-                -e CLOVA_OCR_URL="${{ secrets.CLOVA_OCR_URL }}" \
-                -e CLOVA_OCR_SECRET_KEY="${{ secrets.CLOVA_OCR_SECRET_KEY }}" \
-                -e JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}" \
-                -e AWS_ACCESS_KEY="${{ secrets.AWS_ACCESS_KEY }}" \
-                -e AWS_SECRET_KEY="${{ secrets.AWS_SECRET_KEY }}" \
-                -e S3_BUCKET_NAME="${{ secrets.S3_BUCKET_NAME }}" \
-                -e GPT_API_KEY="${{ secrets.GPT_API_KEY }}" \
-                --name ${{ env.CONTAINER_NAME }} ${{ env.DOCKER_IMAGE_NAME }}:latest
-            else
-              sudo docker image prune -a -f --filter "dangling=true"
-              exit 1
-            fi
+            sudo docker run -d -p 80:8000 \
+              -e MONGO_DB_URL="${{ secrets.MONGO_DB_URL }}" \
+              -e MONGO_DB_NAME="${{ secrets.MONGO_DB_NAME }}" \
+              -e CLOVA_SPEECH_SECRET_KEY="${{ secrets.CLOVA_SPEECH_SECRET_KEY }}" \
+              -e CLOVA_SPEECH_URL="${{ secrets.CLOVA_SPEECH_URL }}" \
+              -e CLOVA_OCR_URL="${{ secrets.CLOVA_OCR_URL }}" \
+              -e CLOVA_OCR_SECRET_KEY="${{ secrets.CLOVA_OCR_SECRET_KEY }}" \
+              -e JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}" \
+              -e AWS_ACCESS_KEY="${{ secrets.AWS_ACCESS_KEY }}" \
+              -e AWS_SECRET_KEY="${{ secrets.AWS_SECRET_KEY }}" \
+              -e S3_BUCKET_NAME="${{ secrets.S3_BUCKET_NAME }}" \
+              -e GPT_API_KEY="${{ secrets.GPT_API_KEY }}" \
+              --name ${{ env.CONTAINER_NAME }} ${{ env.DOCKER_IMAGE_NAME }}:latest
