@@ -222,3 +222,4 @@ mecab-python
 requests
 pyjwt
 boto3
+openai
