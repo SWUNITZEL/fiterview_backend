@@ -4,7 +4,7 @@ from bson import ObjectId
 from app.core.database import database
 from app.models.question_model import Question
 
-question_collection = database['questions']
+question_collection = database["questions"]
 
 class QuestionRepository:
     def __init__(self):
@@ -12,7 +12,12 @@ class QuestionRepository:
 
     async def save_questions(self, persona: str, major: str, questions: List[str]) -> List[str]:
         docs = [
-            Question(persona=persona, major=major, question=q, created_at=datetime.utcnow()).model_dump()
+            Question(
+                persona=persona,
+                major=major,
+                question=q,
+                created_at=datetime.utcnow()
+            ).model_dump()
             for q in questions
         ]
         result = await self.collection.insert_many(docs)
