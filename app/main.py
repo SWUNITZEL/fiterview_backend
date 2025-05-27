@@ -24,7 +24,7 @@ app.include_router(interview_router.router)
 #app.include_router(answer_router.router)
 app.include_router(document_router.router)
 #app.include_router(passage_feedback_router.router)
-#app.include_router(selfinfo_feedback_router.router)
+app.include_router(selfinfo_feedback_router.router)
 app.include_router(persona_question_router.router)
 
 # CORS 설정
