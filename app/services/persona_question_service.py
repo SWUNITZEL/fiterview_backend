@@ -1,8 +1,9 @@
 import openai
 import os
-from app.core.config import Settings
+from app.core.config import settings
 
-client = openai.OpenAI(api_key=Settings.GPT_API_KEY)
+client = openai.OpenAI(api_key=settings.GPT_API_KEY)
+
 
 async def generate_interview_questions(document_text: str, persona_label: str, major: str) -> str:
     prompt = f"""
