@@ -1,7 +1,9 @@
 import os
 import openai
+from app.core.config import Settings
 
-client = openai.OpenAI(api_key=os.getenv("GPT_API_SECRET_KEY"))
+
+client = openai.OpenAI(api_key=Settings.GPT_API_KEY)
 
 def get_dynamic_fewshot(prompt_text: str) -> str:
     if "장단점" in prompt_text or "자신의 장점과 단점" in prompt_text:
