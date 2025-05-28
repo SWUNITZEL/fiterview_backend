@@ -62,4 +62,5 @@ jobs:
               -e AWS_SECRET_KEY="${{ secrets.AWS_SECRET_KEY }}" \
               -e S3_BUCKET_NAME="${{ secrets.S3_BUCKET_NAME }}" \
               -e GPT_API_KEY="${{ secrets.GPT_API_KEY }}" \
+              -e AWS_REGION="${{ secrets.AWS_REGION }}" \
               --name ${{ env.CONTAINER_NAME }} ${{ env.DOCKER_IMAGE_NAME }}:latest
