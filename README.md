@@ -1,2 +1,3 @@
 ## Architecture
-![fiterview drawio](https://github.com/user-attachments/assets/bcdf2c03-04db-4d10-b2ff-c33870768c60)
+
+![fiterview drawio](https://github.com/user-attachments/assets/6cb34ce4-2004-4382-9196-bb4daefd26c5)
