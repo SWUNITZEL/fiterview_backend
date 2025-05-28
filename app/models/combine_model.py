@@ -4,7 +4,6 @@ from pydantic import BaseModel
 from datetime import datetime
 
 class Combine(BaseModel):
-    document_id: Optional[str] = None
     user_d: Optional[str] = None
     university: Optional[str] = None
     department: Optional[str] = None

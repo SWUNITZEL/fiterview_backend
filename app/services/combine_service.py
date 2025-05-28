@@ -12,7 +12,6 @@ class CombineService:
     @staticmethod
     async def create_combine(create_combine_request: CreateCombineRequest) -> CreateCombineResponse:
         combine = Combine(
-            document_id=create_combine_request.document_id,
             university=create_combine_request.university,
             department=create_combine_request.department,
             question_count=create_combine_request.question_count,
