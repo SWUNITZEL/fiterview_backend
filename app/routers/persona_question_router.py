@@ -1,8 +1,8 @@
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from app.services.ocr_service import OCRService
 from app.services.persona_question_service import generate_interview_questions
-from app.services.pdf_service import PDFService
 from app.repository.question_repository import QuestionRepository
+from app.services.s3_service import S3Service
 
 router = APIRouter()
 question_repo = QuestionRepository()
@@ -19,7 +19,7 @@ async def generate_questions_from_pdf(
         content = await file.read()
 
         # S3 업로드
-        s3_url = await PDFService.upload_to_s3(content, file.filename)
+        s3_url = await S3Service.upload_to_s3(content, file.filename)
 
         # OCR 처리
         ocr_result = await ocr_service.process_pdf_ocr(content)

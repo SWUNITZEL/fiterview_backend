@@ -6,9 +6,8 @@ import subprocess
 from fastapi import WebSocket, WebSocketDisconnect
 
 from app.services.answer_service import AnswerService
+from app.services.s3_service import S3Service
 from app.services.stt_service import SttService
-from app.services.video_service import VideoService
-
 
 async def websocket_interview(websocket: WebSocket, interview_id: str):
     await websocket.accept()
@@ -33,7 +32,7 @@ async def websocket_interview(websocket: WebSocket, interview_id: str):
                 await websocket.send_text(sentence)
 
                 # s3에 영상 저장
-                await VideoService.upload_to_s3(webm_path, interview_id, answer_id)
+                await S3Service.upload_video_file_to_s3(webm_path, interview_id, answer_id)
 
                 # 백그라운드로 답변 분석 및 영상 분석
                 asyncio.create_task(AnswerService.analysis_answer(answer_id, sentence))
