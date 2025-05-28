@@ -1,12 +1,11 @@
 from datetime import date
-from typing import Optional, List
+from typing import Optional
 
 from pydantic import BaseModel
 from pydantic.alias_generators import to_camel
 
 
 class CreateCombineRequest(BaseModel):
-    document_id: str
     university: str
     department: str
     question_count: int
