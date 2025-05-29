@@ -71,7 +71,7 @@ class AnswerService:
                 shutil.copyfileobj(file.file, buffer)
 
         # 영상 s3에 업로드
-        video_url = await S3Service.upload_video_file_to_s3(temp_file_path, interview_id, "sdsda")
+        video_url = await S3Service.upload_video_file_to_s3(temp_file_path, interview_id, "sdsda") # answer_id 수정 필요
 
         try:
             # 분석 수행
@@ -111,11 +111,11 @@ class AnswerService:
             smile_ratio = round(smiling_frames / total_frames, 4)
 
             return AnalysisVideoResponse(
-                interview_id=interview_id,
-                answer_id=question_id,
-                question_id=question_id,
-                smile_ratio=smile_ratio,
-                video_url=video_url
+                interviewId=interview_id,
+                answerId=question_id,
+                questionId=question_id,
+                smileRatio=smile_ratio,
+                videoUrl=video_url
             )
 
         finally:
