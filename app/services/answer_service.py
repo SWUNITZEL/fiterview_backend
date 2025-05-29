@@ -56,7 +56,7 @@ class AnswerService:
 
     # 영상에서 표정, 시선처리, 자세 분석 함수
     async def analysis_answer_video(file: UploadFile, interview_id: str, question_id: str) -> AnalysisVideoResponse:
-        detect_smile_threshold = await AnswerService.interview_repo.find_smile_threshold_by_id(interview_id)
+        calibration_data  = await AnswerService.interview_repo.get_all_calibration_data(interview_id)
 
         # 임시 파일 생성
         with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as tmp:
@@ -73,6 +73,8 @@ class AnswerService:
             if not cap.isOpened():
                 raise InvalidVideoException()
 
+            gaze_down_count = 0
+            gaze_down_frame_count = 0
             smiling_frames = 0
             total_frames = 0
 
@@ -88,18 +90,34 @@ class AnswerService:
                     for face_landmarks in results.multi_face_landmarks:
                         img_h, img_w, _ = frame.shape
 
+                        # 시선 분석
+                        ear, avg_iris_ratio = calculate_gaze_points(face_landmarks, img_h, img_w)
+
+                        gaze_x = int((avg_iris_ratio - calibration_data["avg_iris_ratio"]) * img_h + img_w / 2)
+                        gaze_y = img_h - int((ear - calibration_data["ear"]) * img_h * 10 + img_w / 2)
+
+                        # 시선이 아래로 향하면 카운터에 1 추가
+                        if ear < calibration_data["ear"] - 0.02:
+                            gaze_down_frame_count += 1
+
+                        elif ear > calibration_data["ear"] + 0.02:
+                            gaze_down_frame_count = 0
+
+                        # 10프레임 이상 시선이 아래를 향하면 gaze_down_count 추가
+                        if (gaze_down_frame_count > 10):
+                            gaze_down_count += 1
+                            gaze_down_frame_count = 0
+
+                        # 표정 분석
                         smile_score = calculate_smile_points(face_landmarks)
 
                         if smile_score is not None:
-                            if smile_score > detect_smile_threshold["smile_threshold"]:
+                            if smile_score > calibration_data["smile_threshold"]:
                                 smiling_frames += 1
                         else:
                             raise AppException(status_code=400, message="표정 분석 점수 계산에 실패했습니다.") # 계산 실패시 예외 처리
 
             cap.release()
-
-            if total_frames == 0:
-                return {"smile_ratio": 0.0, "smiling_frames": 0, "total_frames": 0}
 
             smile_ratio = round(smiling_frames / total_frames, 4)
 
@@ -108,6 +126,7 @@ class AnswerService:
                 answerId=question_id,
                 questionId=question_id,
                 smileRatio=smile_ratio,
+                gazeDownCount=gaze_down_count,
                 videoUrl=video_url
             )
 

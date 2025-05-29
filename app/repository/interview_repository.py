@@ -18,8 +18,13 @@ class InterviewRepository:
     async def find_by_id(self, id: str) -> Optional[dict]:
         return await self.collection.find_one({"_id": ObjectId(id)})
 
-    async def find_smile_threshold_by_id(self, id: str) -> Optional[float]:
-        return await self.collection.find_one({"_id": ObjectId(id)}, {"smile_threshold": 1, "_id": 0})
+    async def find_all_calibration_data(self, id: str) -> Optional[dict]:
+        return await self.collection.find_one(
+            {"_id": ObjectId(id)},
+            {"smile_threshold": 1,
+             "ear": 1,
+             "avg_iris_ratio": 1,
+             "_id": 0})
 
     async def update(self, id: str, update_fields: dict) -> bool:
         result = await self.collection.update_one(

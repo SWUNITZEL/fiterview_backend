@@ -9,8 +9,7 @@ face_mesh = mp_face_mesh.FaceMesh(max_num_faces=1,
                                   min_detection_confidence=0.6,
                                   min_tracking_confidence=0.7)
 
-mp_drawing = mp.solutions.drawing_utils
-
+# mp_drawing = mp.solutions.drawing_utils
 
 screen_width = 640
 screen_height = 480

@@ -7,6 +7,7 @@ class AnalysisVideoResponse(BaseModel):
     answer_id: str
     question_id: str
     smile_ratio: float
+    gaze_down_count: int
     video_url: str
 
     class Config:
