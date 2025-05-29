@@ -57,6 +57,11 @@ class AnswerService:
 
     # 영상에서 표정, 시선처리, 자세 분석 함수
     async def analysis_answer_video(file: UploadFile, interview_id: str, question_id: str) -> AnalysisVideoResponse:
+        # 인터뷰 존재 여부 확인
+        interview = await AnswerService.interview_repo.find_by_id(interview_id)
+        if interview is None:
+            raise InterviewNotFoundException();
+
         calibration_data  = await AnswerService.interview_repo.find_all_calibration_data(interview_id)
 
         # 임시 파일 생성
