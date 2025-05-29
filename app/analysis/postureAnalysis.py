@@ -1,5 +1,4 @@
 import cv2
-import time
 import math as m
 import mediapipe as mp
 from pymongo import MongoClient
@@ -21,41 +20,20 @@ pose = mp_pose.Pose()
 screen_width = 640
 screen_height = 480
 
-cap = cv2.VideoCapture(0)  # 웹캠 열기
-cap.set(3, screen_width)
-cap.set(4, screen_height)
 
-# 캘리브레이션 (프레임 하나에서 기준값 저장)
-while True:
-    ret, image = cap.read()
-    if not ret:
-        print("카메라 프레임 읽기 실패")
-        break
+def calculate_pose_calibration(pose_landmarks, img_h, img_w):
+    lm = pose_landmarks.landmark
 
-    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    result = pose.process(image_rgb)
+    l_shldr = lm[mp_pose.PoseLandmark.LEFT_SHOULDER]
+    r_shldr = lm[mp_pose.PoseLandmark.RIGHT_SHOULDER]
+    l_ear = lm[mp_pose.PoseLandmark.LEFT_EAR]
 
-    if result.pose_landmarks:
-        lm = result.pose_landmarks.landmark
-        width, height = image.shape[1], image.shape[0]
+    shoulder_distance = findDistance(l_shldr.x * img_w, l_shldr.y * img_h,
+                                     r_shldr.x * img_w, r_shldr.y * img_h)
+    head_x = l_ear.x * img_w
 
-        l_shldr = lm[mp_pose.PoseLandmark.LEFT_SHOULDER]
-        r_shldr = lm[mp_pose.PoseLandmark.RIGHT_SHOULDER]
-        l_ear = lm[mp_pose.PoseLandmark.LEFT_EAR]
+    return shoulder_distance, head_x
 
-        shoulder_distance = findDistance(l_shldr.x * width, l_shldr.y * height,
-                                         r_shldr.x * width, r_shldr.y * height)
-        head_x = l_ear.x * width
-
-        # 기준값 저장
-        calibration_collection.insert_one({
-            "shoulder_distance": shoulder_distance,
-            "head_x": head_x,
-            "timestamp": time.time()
-        })
-
-        print("기준 자세 캘리브레이션 완료")
-        break
 
 print("실시간 자세 분석 시작")
 
@@ -123,7 +101,6 @@ while cap.isOpened():
 
 # 결과 저장
 analysis_collection.insert_one({
-    "timestamp": time.time(),
     "shoulder_move_count": shoulder_move_count,
     "head_move_count": head_move_count
 })
