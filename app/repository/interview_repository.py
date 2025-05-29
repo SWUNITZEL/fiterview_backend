@@ -24,6 +24,9 @@ class InterviewRepository:
             {"smile_threshold": 1,
              "ear": 1,
              "avg_iris_ratio": 1,
+             "avg_iris_ratio": 1,
+             "shoulder_distance": 1,
+             "head_x" : 1,
              "_id": 0})
 
     async def update(self, id: str, update_fields: dict) -> bool:
