@@ -1,125 +1,86 @@
-import cv2
+import math as m
 import mediapipe as mp
-from app.repository import posture_repository
+from pymongo import MongoClient
 
+# MongoDB 연결
+client = MongoClient('mongodb://localhost:27017/')
+db = client['test_db']
+calibration_collection = db['posture_calibration']
+analysis_collection = db['posture_analysis']
+
+# 거리 계산
+def findDistance(x1, y1, x2, y2):
+    return m.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+
+# Mediapipe 초기화
 mp_pose = mp.solutions.pose
-pose = mp_pose.Pose(min_detection_confidence=0.6, min_tracking_confidence=0.7)
+pose = mp_pose.Pose()
 
-screen_width = 640
-screen_height = 480
+def calculate_pose_calibration(pose_landmarks, img_h, img_w):
+    lm = pose_landmarks.landmark
 
-cap = cv2.VideoCapture(0)
-cap.set(3, screen_width)
-cap.set(4, screen_height)
+    l_shldr = lm[mp_pose.PoseLandmark.LEFT_SHOULDER]
+    r_shldr = lm[mp_pose.PoseLandmark.RIGHT_SHOULDER]
+    l_ear = lm[mp_pose.PoseLandmark.LEFT_EAR]
 
-# 사진을 통해 기준 데이터 구하는 메서드
-def calibrate_posture_points(image_path: str):
-    image = cv2.imread(image_path)
-    if image is None:
-        print("Image not found!")
-        return None, None
+    shoulder_distance = findDistance(l_shldr.x * img_w, l_shldr.y * img_h,
+                                     r_shldr.x * img_w, r_shldr.y * img_h)
+    head_x = l_ear.x * img_w
 
-    with mp_pose.Pose(static_image_mode=True, model_complexity=1) as pose_static:
-        results = pose_static.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-        if not results.pose_landmarks:
-            print("No pose landmarks found!")
-            return None, None
-
-        landmarks = results.pose_landmarks.landmark
-        left_shoulder_y = landmarks[11].y
-        right_shoulder_y = landmarks[12].y
-        shoulder_diff = abs(left_shoulder_y - right_shoulder_y)
-
-        nose_x = landmarks[0].x
-        left_ear_x = landmarks[7].x
-        right_ear_x = landmarks[8].x
-        head_center_x = (left_ear_x + right_ear_x) / 2
-        head_rotation = nose_x - head_center_x
-
-        return shoulder_diff, head_rotation
-
-# 기준값 불러오기
-try:
-    latest = posture_repository.get_latest_calibration_data()
-    calibration_shoulder_diff = latest["shoulder_diff"]
-    calibration_head_rotation = latest["head_rotation"]
-except:
-    calibration_shoulder_diff, calibration_head_rotation = calibrate_posture_points("calibration_image.jpg")
-
-shoulder_tilt_count = 0
-turn_left_count = 0
-turn_right_count = 0
-prev_label = None
-same_posture_count = 0
-threshold_frame = 10
-sensitivity = 0.02
-
-while cap.isOpened():
-    ret, frame = cap.read()
-    if not ret:
-        break
-
-    frame = cv2.flip(frame, 1)
-    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    results = pose.process(rgb)
-
-    if results.pose_landmarks:
-        landmarks = results.pose_landmarks.landmark
-
-        left_shoulder_y = landmarks[11].y
-        right_shoulder_y = landmarks[12].y
-        shoulder_diff = abs(left_shoulder_y - right_shoulder_y)
-
-        nose_x = landmarks[0].x
-        left_ear_x = landmarks[7].x
-        right_ear_x = landmarks[8].x
-        head_center_x = (left_ear_x + right_ear_x) / 2
-        head_rotation = nose_x - head_center_x
-
-        posture_label = "GOOD"
-        if shoulder_diff > calibration_shoulder_diff + sensitivity:
-            posture_label = "SHOULDER TILT"
-        elif head_rotation > calibration_head_rotation + sensitivity:
-            posture_label = "TURN RIGHT"
-        elif head_rotation < calibration_head_rotation - sensitivity:
-            posture_label = "TURN LEFT"
-
-        if posture_label == prev_label:
-            same_posture_count += 1
-        else:
-            same_posture_count = 1
-            prev_label = posture_label
-
-        if same_posture_count == threshold_frame:
-            if posture_label == "SHOULDER TILT":
-                shoulder_tilt_count += 1
-            elif posture_label == "TURN LEFT":
-                turn_left_count += 1
-            elif posture_label == "TURN RIGHT":
-                turn_right_count += 1
-            same_posture_count = 0
-
-        cv2.putText(frame, f"Posture: {posture_label}", (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-
-    cv2.imshow("Posture Tracking", frame)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-# 결과 저장
-posture_repository.insert_analysis_data({
-    "shoulder_tilt_count": shoulder_tilt_count,
-    "turn_left_count": turn_left_count,
-    "turn_right_count": turn_right_count
-})
-
-print(f"저장 완료: 어깨 기울임 {shoulder_tilt_count}회, 좌회전 {turn_left_count}회, 우회전 {turn_right_count}회")
-
-cap.release()
-cv2.destroyAllWindows()
+    return shoulder_distance, head_x
 
 
-
-
-
+# print("실시간 자세 분석 시작")
+#
+# # 자세 분석
+# threshold_shoulder = 20
+# threshold_head = 15
+#
+# shoulder_move_count = 0
+# head_move_count = 0
+# shoulder_frame_counter = 0
+# head_frame_counter = 0
+#
+# # 기준값 불러오기
+# calib = calibration_collection.find_one(sort=[('_id', -1)])
+# base_shoulder_distance = calib['shoulder_distance']
+# base_head_x = calib['head_x']
+#
+# # 실시간 루프
+# while cap.isOpened():
+#     success, frame = cap.read()
+#     if not success:
+#         break
+#
+#     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+#     result = pose.process(rgb)
+#
+#     if result.pose_landmarks:
+#         lm = result.pose_landmarks.landmark
+#         width, height = frame.shape[1], frame.shape[0]
+#
+#         l_shldr = lm[mp_pose.PoseLandmark.LEFT_SHOULDER]
+#         r_shldr = lm[mp_pose.PoseLandmark.RIGHT_SHOULDER]
+#         l_ear = lm[mp_pose.PoseLandmark.LEFT_EAR]
+#
+#         curr_shoulder_distance = findDistance(l_shldr.x * width, l_shldr.y * height,
+#                                               r_shldr.x * width, r_shldr.y * height)
+#         curr_head_x = l_ear.x * width
+#
+#         # 어깨 움직임 감지 (몸 기울임,가까워 지거나 멀어짐, 위 아래 움직임 모두 고려)
+#         if abs(curr_shoulder_distance - base_shoulder_distance) > threshold_shoulder:
+#             shoulder_frame_counter += 1
+#         else:
+#             if shoulder_frame_counter > 5:
+#                 shoulder_move_count += 1
+#             shoulder_frame_counter = 0
+#
+#         # 머리 움직임 감지(좌우만)
+#         if abs(curr_head_x - base_head_x) > threshold_head:
+#             head_frame_counter += 1
+#         else:
+#             if head_frame_counter > 5:
+#                 head_move_count += 1
+#             head_frame_counter = 0
 
 

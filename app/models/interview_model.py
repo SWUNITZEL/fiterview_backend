@@ -15,5 +15,7 @@ class Interview(BaseModel):
     ear: Optional[float] = 0.0
     smile_threshold: Optional[float] = 0.0
     avg_iris_ratio: Optional[float] = 0.0
+    shoulder_distance: Optional[float] = 0.0
+    head_x: Optional[float] = 0.0
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None

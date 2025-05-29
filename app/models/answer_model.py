@@ -12,6 +12,7 @@ class Answer(BaseModel):
     aiAnalysis_comment: Optional[str] = None
     improved_answer: Optional[str] = None
     blind_rule_adherence: Optional[str] = None
+    smail_ratio: Optional[str] = None
     video_url: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None

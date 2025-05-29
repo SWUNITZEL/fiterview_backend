@@ -9,8 +9,7 @@ face_mesh = mp_face_mesh.FaceMesh(max_num_faces=1,
                                   min_detection_confidence=0.6,
                                   min_tracking_confidence=0.7)
 
-mp_drawing = mp.solutions.drawing_utils
-
+# mp_drawing = mp.solutions.drawing_utils
 
 screen_width = 640
 screen_height = 480
@@ -67,28 +66,6 @@ def calculate_gaze_points(face_landmarks, img_h, img_w):
 
     return ear, avg_iris_ratio
 
-
-
-# 사진을 통해 기준 데이터 구하는 메서드
-def calibrate_gaze_points(image_path: str) :
-    # 사진 받아오기
-    image = cv2.imread(image_path)
-    if image is None:
-        print("Image not found!")
-        return
-
-    # 사진 정보에서 face_landmark 정보 추출
-    with mp_face_mesh.FaceMesh(static_image_mode=True, max_num_faces=1, refine_landmarks=True) as face_mesh:
-        results = face_mesh.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-        if not results.multi_face_landmarks:
-            print("No face landmarks found!")
-            return
-        face_landmarks = results.multi_face_landmarks[0]
-
-
-    ear, avg_iris_ratio = calculate_gaze_points(face_landmarks, image.shape[0], image.shape[1])
-
-    return ear, avg_iris_ratio
 
 
 datas = calibration_data_repository.get_all_calibration_data()
