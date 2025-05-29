@@ -75,15 +75,16 @@ class LandmarkService:
     # 표정 분석을 위한 기준점 계산
     @staticmethod
     def calculate_smile_points(face_landmarks):
-        landmarks = face_landmarks.landmark
-
         # 기준점: 코 밑 ref_y
-        ref_y = landmarks[1].y
+        ref_y = face_landmarks.landmark[1].y
 
         # 코 밑과 턱 끝 사이의 거리
-        face_height = landmarks[152].y - landmarks[1].y
-        left_mouth = landmarks[61].y
-        right_mouth = landmarks[291].y
+        face_height = face_landmarks.landmark[152].y - face_landmarks.landmark[1].y
+        if face_height == 0:
+            return None
+
+        left_mouth = face_landmarks.landmark[61].y
+        right_mouth = face_landmarks.landmark[291].y
 
         left_point = (left_mouth - ref_y) / face_height
         right_point = (right_mouth - ref_y) / face_height
