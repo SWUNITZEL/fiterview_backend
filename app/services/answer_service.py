@@ -5,10 +5,9 @@ import tempfile
 import cv2
 from fastapi import UploadFile
 from konlpy.tag import Mecab
-import mediapipe as mp
 from collections import Counter
 
-from app.analysis.facial_analysis import *
+from app.analysis.face_mesh_analysis import *
 from app.core.exceptions.custom import *
 from app.repository.answer_repository import *
 from app.repository.interview_repository import InterviewRepository
@@ -57,11 +56,6 @@ class AnswerService:
 
     # 영상에서 표정, 시선처리, 자세 분석 함수
     async def analysis_answer_video(file: UploadFile, interview_id: str, question_id: str) -> AnalysisVideoResponse:
-        mp_face_mesh = mp.solutions.face_mesh
-        face_mesh = mp_face_mesh.FaceMesh(max_num_faces=1,
-                                          refine_landmarks=True,
-                                          min_detection_confidence=0.6,
-                                          min_tracking_confidence=0.7)
         detect_smile_threshold = await AnswerService.interview_repo.find_smile_threshold_by_id(interview_id)
 
         # 임시 파일 생성
@@ -88,8 +82,7 @@ class AnswerService:
                     break
 
                 total_frames += 1
-                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                results = face_mesh.process(frame_rgb)
+                results = face_mesh.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
                 if results.multi_face_landmarks:
                     for face_landmarks in results.multi_face_landmarks:
@@ -101,7 +94,7 @@ class AnswerService:
                             if smile_score > detect_smile_threshold["smile_threshold"]:
                                 smiling_frames += 1
                         else:
-                            raise SmileAnalysisException() # 계산 실패시 예외 처리
+                            raise AppException(status_code=400, message="표정 분석 점수 계산에 실패했습니다.") # 계산 실패시 예외 처리
 
             cap.release()
 
