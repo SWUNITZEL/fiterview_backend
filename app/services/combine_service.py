@@ -10,8 +10,9 @@ class CombineService:
     repo = CombineRepository()
 
     @staticmethod
-    async def create_combine(create_combine_request: CreateCombineRequest) -> CreateCombineResponse:
+    async def create_combine(create_combine_request: CreateCombineRequest, user_email: str) -> CreateCombineResponse:
         combine = Combine(
+            user_d=user_email,
             university=create_combine_request.university,
             department=create_combine_request.department,
             question_count=create_combine_request.question_count,

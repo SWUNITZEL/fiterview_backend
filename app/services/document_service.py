@@ -14,11 +14,15 @@ class DocumentService:
         self.gpt_service = GPTService()
         self.ocr_service = OCRService()
 
-    async def process_document(self, document):
+    async def process_document(self, document, user_email):
         try:
             if not document.filename.endswith(".pdf"):
                 raise AppException(status_code=400, message="Only PDF files are supported.")
 
+            if user_email == "":
+                raise AppException(status_code=400, message="Email is required.")
+
+            print(user_email)
             content = await document.read()
             result = await self.ocr_service.process_pdf_ocr(content)
 
@@ -40,6 +44,7 @@ class DocumentService:
 
 
             document = Document(
+                user_email=user_email,
                 content=combined_text,
                 grades=combined_grades,
                 features=combined_features,
@@ -51,6 +56,7 @@ class DocumentService:
             await self.document_repository.insert_document(document)
 
             return DocumentResponse(
+                user_email=user_email,
                 grades=combined_grades,
                 type=gpt_result.get("type"),
                 hashtags=gpt_result.get("hashtags"),
