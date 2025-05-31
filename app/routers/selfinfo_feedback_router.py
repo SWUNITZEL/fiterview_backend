@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from datetime import datetime
 
@@ -6,6 +6,7 @@ from app.models.feedback_model import Feedback
 from app.repository.answer_repository import AnswerRepository
 from app.repository.question_repository import QuestionRepository
 from app.repository.selfinfo_feedback_repository import FeedbackRepository
+from app.services.auth_service import AuthService
 from app.services.selfinfo_feedback_service import build_prompt, generate_feedback
 
 # Repository 인스턴스 생성
@@ -13,7 +14,12 @@ answer_repo = AnswerRepository()
 question_repo = QuestionRepository()
 feedback_repo = FeedbackRepository()
 
-router = APIRouter()
+
+auth_service = AuthService()
+
+router = APIRouter(
+    dependencies=[Depends(auth_service.get_current_user)]
+)
 
 @router.post("/interview/selfinfo-feedback")
 async def improve_answer(payload: Feedback):
