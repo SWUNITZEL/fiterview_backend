@@ -8,8 +8,8 @@ class InterviewWaitingRoomResponse(BaseModel):
     ear: float
     smile_threshold: float
     avg_iris_ratio: float
-    shoulder_distance: float
-    head_x: float
+    shoulder_diff: float
+    head_rotation: float
 
     class Config:
         alias_generator = to_camel
