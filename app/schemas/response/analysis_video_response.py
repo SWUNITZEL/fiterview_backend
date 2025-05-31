@@ -8,6 +8,7 @@ class AnalysisVideoResponse(BaseModel):
     question_id: str
     smile_ratio: float
     gaze_down_count: int
+    gaze_points : list
     shoulder_tilt_count: int
     turn_left_count: int
     turn_right_count: int
