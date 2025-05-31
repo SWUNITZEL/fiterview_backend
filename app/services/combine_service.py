@@ -24,5 +24,5 @@ class CombineService:
         new_combine_id = await CombineService.repo.insert(combine)
 
         return CreateCombineResponse(
-            combine_id=new_combine_id,
+            combineId=new_combine_id,
         )

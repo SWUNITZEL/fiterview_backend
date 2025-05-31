@@ -1,6 +1,5 @@
 import os
 import tempfile
-import subprocess
 
 from fastapi import WebSocket, WebSocketDisconnect
 
