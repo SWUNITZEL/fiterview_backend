@@ -1,10 +1,16 @@
 from app.core.database import database
 from app.models.user_model import User
 
-collection = database['user']
+user_collection = database['user']
 
-async def insert_gaze_analysis_data(user: dict):
-    return await collection.insert_one(user)
 
-async def find_user(email: str) -> User:
-    return collection.find_one({"email": email})
+class UserRepository:
+    def __init__(self):
+        self.collection = user_collection
+
+    async def insert_gaze_analysis_data(self, user: dict):
+        return await self.collection.insert_one(user)
+
+    async def find_user(self, email: str) -> User:
+        return await self.collection.find_one({"email": email})
+
