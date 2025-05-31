@@ -133,7 +133,7 @@ class SttService:
                              data=json.dumps(request_body).encode('UTF-8'))
 
     async def req_upload(self, file, completion, callback=None, userdata=None, forbiddens=None, boostings=None,
-                   wordAlignment=True, fullText=True, diarization=None, sed=None, interview_id: str = "", question_id: str = ""):
+                   wordAlignment=True, fullText=True, diarization=None, sed=None):
         request_body = {
             'language': 'ko-KR',
             'completion': completion,
@@ -157,12 +157,5 @@ class SttService:
         }
         response = requests.post(headers=headers, url=self.invoke_url + '/recognizer/upload', files=files)
         sentence = json.loads(response.text).get("segments", [])[0].get("text")
-        from app.models.answer_model import Answer
-        answer = Answer(
-            interview_id=interview_id,
-            question_id=question_id,
-            answer=sentence
-        )
-        answer_id = await SttService.repo.insert_document(answer)
 
-        return sentence, answer_id
+        return sentence
