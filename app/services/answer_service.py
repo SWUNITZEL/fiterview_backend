@@ -84,6 +84,11 @@ class AnswerService:
             gaze_down_frame_count = 0
             smiling_frames = 0
             total_frames = 0
+            gaze_frame_index = 0
+            gaze_sampling_rate = 5
+            gaze_points = []
+            saved_gaze_x = 0
+            saved_gaze_y = 0
 
             # pose
             shoulder_tilt_count = 0
@@ -115,16 +120,37 @@ class AnswerService:
                         gaze_y = img_h - int((ear - calibration_data["ear"]) * img_h * 10 + img_w / 2)
 
                         # 시선이 아래로 향하면 카운터에 1 추가
-                        if ear < calibration_data["ear"] - 0.02:
+                        if ear < calibration_data["ear"] * (2/3):
                             gaze_down_frame_count += 1
 
-                        elif ear > calibration_data["ear"] + 0.02:
+                        else :
                             gaze_down_frame_count = 0
 
                         # 10프레임 이상 시선이 아래를 향하면 gaze_down_count 추가
                         if (gaze_down_frame_count > 10):
                             gaze_down_count += 1
                             gaze_down_frame_count = 0
+
+                        # 5프레임당 한 번 시선 정보 저장
+                        if gaze_frame_index % gaze_sampling_rate == 0:
+                            saved_gaze_x = 0
+                            saved_gaze_y = 0
+                            # X 좌표 정규화
+                            if 0 < gaze_x < img_w:
+                                saved_gaze_x = int((gaze_x * 100) / img_w)
+                            elif gaze_x <= 0:
+                                saved_gaze_x = 0
+                            elif gaze_x >= img_w:
+                                saved_gaze_x = 100
+
+                            # Y 좌표 정규화
+                            if 0 < gaze_y < img_h:
+                                saved_gaze_y = int((gaze_y * 100) / img_h)
+                            elif gaze_y <= 0:
+                                saved_gaze_y = 0
+                            elif gaze_y >= img_h:
+                                saved_gaze_y = 100
+                            gaze_points.append((saved_gaze_x, saved_gaze_y))
 
                         # 표정 분석
                         smile_score = calculate_smile_points(face_landmarks)
@@ -172,6 +198,7 @@ class AnswerService:
                 questionId=question_id,
                 smileRatio=smile_ratio,
                 gazeDownCount=gaze_down_count,
+                gazePoints=gaze_points,
                 shoulderTiltCount=shoulder_tilt_count,
                 turnLeftCount=turn_left_count,
                 turnRightCount=turn_right_count,
