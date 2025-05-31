@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 
 class Document(BaseModel):
-    user_id: Optional[str] = None
+    user_email: Optional[str]
     content: Optional[str] = None
     grades: Optional[dict] = None
     features: Optional[str] = None

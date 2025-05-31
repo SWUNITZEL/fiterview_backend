@@ -1,31 +1,37 @@
-from fastapi import HTTPException, Depends
+from fastapi import HTTPException, Depends, FastAPI
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jwt import ExpiredSignatureError, InvalidTokenError
 from typing import Annotated
 
+from app.core.exceptions.base import AppException
 from app.core.security import decode_token
-from app.repository.user_repository import find_user  # 별도 모듈로 분리 추천
+from app.repository.user_repository import UserRepository  # 별도 모듈로 분리 추천
 
 
-bearer_scheme = HTTPBearer()
+class AuthService:
+    bearer_scheme = HTTPBearer(auto_error=False)
+    user_repository = UserRepository()
 
-async def get_current_user(
-    credentials: Annotated[HTTPAuthorizationCredentials, Depends(bearer_scheme)]
-):
+    async def get_current_user(
+        self,
+        credentials: Annotated[HTTPAuthorizationCredentials, Depends(bearer_scheme)]
+    ):
+        if credentials is None:
+            raise AppException(status_code=401, message="token is missing")
 
-    token = credentials.credentials
-    try:
-        payload = decode_token(token)
-        email = payload.get("email")
-        if not email:
-            raise HTTPException(status_code=401, detail="Invalid token payload")
-    except ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token has expired")
-    except InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        token = credentials.credentials
+        try:
+            payload = decode_token(token)
+            email = payload.get("email")
+            if not email:
+                raise AppException(status_code=401, message="Invalid token payload")
+        except ExpiredSignatureError:
+            raise AppException(status_code=401, message="Token has expired")
+        except InvalidTokenError:
+            raise AppException(status_code=401, message="Invalid token")
 
-    user = await find_user(email=email)
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found")
+        user = await self.user_repository.find_user(email)
+        if not user:
+            raise AppException(status_code=401, message="User not found")
 
-    return user
+        return user

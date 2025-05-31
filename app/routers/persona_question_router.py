@@ -1,10 +1,15 @@
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends
+
+from app.services.auth_service import AuthService
 from app.services.ocr_service import OCRService
 from app.services.persona_question_service import generate_interview_questions
 from app.repository.question_repository import QuestionRepository
 from app.services.s3_service import S3Service
 
-router = APIRouter()
+auth_service = AuthService()
+router = APIRouter(
+    dependencies=[Depends(auth_service.get_current_user)]
+)
 question_repo = QuestionRepository()
 ocr_service = OCRService()
 
