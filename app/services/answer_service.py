@@ -62,7 +62,7 @@ class AnswerService:
         if interview is None:
             raise InterviewNotFoundException();
 
-        calibration_data  = await AnswerService.interview_repo.find_all_calibration_data(interview_id)
+        calibration_data  = await AnswerService.interview_repo.find_by_id(interview_id)
 
         # 임시 파일 생성
         with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as tmp:
@@ -79,18 +79,20 @@ class AnswerService:
             if not cap.isOpened():
                 raise InvalidVideoException()
 
+            # face_mesh
             gaze_down_count = 0
             gaze_down_frame_count = 0
             smiling_frames = 0
             total_frames = 0
 
-            threshold_head = 15
-            threshold_shoulder = 20
-
-            head_move_count = 0
-            shoulder_move_count = 0
-            shoulder_frame_counter = 0
-            head_frame_counter = 0
+            # pose
+            shoulder_tilt_count = 0
+            turn_left_count = 0
+            turn_right_count = 0
+            prev_label = None
+            same_posture_count = 0
+            threshold_frame = 10
+            sensitivity = 0.02
 
             while True:
                 ret, frame = cap.read()
@@ -135,24 +137,30 @@ class AnswerService:
 
                 # 자세 분석
                 if pose_results.pose_landmarks:
-                    shoulder_distance, head_x = calculate_pose_calibration(pose_results.pose_landmarks, img_h, img_w)
+                    shoulder_diff, head_rotation = calculate_pose_calibration(pose_results.pose_landmarks, img_h, img_w)
 
-                    # 어깨 움직임 감지 (몸 기울임,가까워 지거나 멀어짐, 위 아래 움직임 모두 고려)
-                    if abs(shoulder_distance - calibration_data["shoulder_distance"]) > threshold_shoulder:
-                        shoulder_frame_counter += 1
+                    posture_label = "GOOD"
+                    if shoulder_diff > calibration_data["shoulder_diff"] + sensitivity:
+                        posture_label = "SHOULDER TILT"
+                    elif head_rotation > calibration_data["head_rotation"] + sensitivity:
+                        posture_label = "TURN RIGHT"
+                    elif head_rotation < calibration_data["head_rotation"] - sensitivity:
+                        posture_label = "TURN LEFT"
+
+                    if posture_label == prev_label:
+                        same_posture_count += 1
                     else:
-                        if shoulder_frame_counter > 5:
-                            shoulder_move_count += 1
-                        shoulder_frame_counter = 0
+                        same_posture_count = 1
+                        prev_label = posture_label
 
-                    # 머리 움직임 감지(좌우만)
-                    if abs(head_x - calibration_data["head_x"]) > threshold_head:
-                        head_frame_counter += 1
-                    else:
-                        if head_frame_counter > 5:
-                            head_move_count += 1
-                        head_frame_counter = 0
-
+                    if same_posture_count == threshold_frame:
+                        if posture_label == "SHOULDER TILT":
+                            shoulder_tilt_count += 1
+                        elif posture_label == "TURN LEFT":
+                            turn_left_count += 1
+                        elif posture_label == "TURN RIGHT":
+                            turn_right_count += 1
+                        same_posture_count = 0
 
             cap.release()
 
@@ -164,8 +172,9 @@ class AnswerService:
                 questionId=question_id,
                 smileRatio=smile_ratio,
                 gazeDownCount=gaze_down_count,
-                shoulderMoveCount=shoulder_move_count,
-                headMoveCount=head_move_count,
+                shoulderTiltCount=shoulder_tilt_count,
+                turnLeftCount=turn_left_count,
+                turnRightCount=turn_right_count,
                 videoUrl=video_url
             )
 

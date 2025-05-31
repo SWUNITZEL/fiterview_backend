@@ -2,6 +2,7 @@ import os
 import tempfile
 from datetime import datetime
 
+import cv2
 from fastapi import UploadFile
 
 from app.analysis.face_mesh_analysis import *
@@ -40,15 +41,15 @@ class InterviewService:
 
             # pose로 자세 분석 기준점
             pose_landmarks = pose_results.pose_landmarks
-            shoulder_distance, head_x = calculate_pose_calibration(pose_landmarks, image.shape[0], image.shape[1])
+            shoulder_diff, head_rotation = calculate_pose_calibration(pose_landmarks, image.shape[0], image.shape[1])
 
             interview = Interview(
                 combine_id=combine_id,
                 ear=ear,
                 smile_threshold=smile_point,
                 avg_iris_ratio=avg_iris_ratio,
-                shoulder_distance=shoulder_distance,
-                head_x=head_x,
+                shoulder_diff=shoulder_diff,
+                head_rotation=head_rotation,
                 created_at=datetime.utcnow()
             )
 
@@ -59,8 +60,8 @@ class InterviewService:
                 ear=ear,
                 smileThreshold=smile_point,
                 avgIrisRatio=avg_iris_ratio,
-                shoulderDistance=shoulder_distance,
-                headX=head_x
+                shoulderDiff=shoulder_diff,
+                headRotation=head_rotation
             )
 
         finally:
