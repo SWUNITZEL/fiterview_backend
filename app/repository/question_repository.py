@@ -29,4 +29,13 @@ class QuestionRepository:
         except Exception:
             return None
 
+    async def get_questions_by_interview_id(self, interview_id: str) -> List[Question]:
+        cursor = self.collection.find({"interview_id": interview_id})
+        results = []
+        async for doc in cursor:
+            doc["id"] = str(doc["_id"])
+            results.append(Question(**doc))
+        return results
+
+
 
