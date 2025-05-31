@@ -1,6 +1,5 @@
 import os
 import tempfile
-import subprocess
 
 from fastapi import WebSocket, WebSocketDisconnect
 
@@ -70,17 +69,3 @@ async def websocket_interview(websocket: WebSocket, interview_id: str):
 
     except WebSocketDisconnect:
         print("WebSocket 연결 종료")
-
-def convert_webm_to_wav(webm_path: str) -> str:
-    wav_path = webm_path.replace('.webm', '.wav')
-    command = [
-        "ffmpeg",
-        "-y",  # 기존 파일 덮어쓰기
-        "-i", webm_path,
-        "-ar", "16000",       # 샘플링 레이트 16kHz
-        "-ac", "1",           # 모노 채널
-        "-c:a", "pcm_s16le",  # WAV 기본 인코딩
-        wav_path
-    ]
-    subprocess.run(command, check=True)
-    return wav_path
