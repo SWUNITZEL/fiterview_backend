@@ -56,44 +56,6 @@ class OCRService:
 
         return text.strip()
 
-
-    # 성적 추출 메서드
-    def extract_grades(self, text):
-        delete_index = text.find("(수강자수)")
-        if delete_index == -1:
-            return {}
-
-        text = text.replace(" ", "")
-
-        if text.find("<진로선택과목>") != -1:
-            removal_patterns = r'<진로선택과목>.*?이수단위합계'
-            text = re.sub(removal_patterns, '', text)
-
-        text = (text[text.find("(수강자수)") + len("(수강자수)"):].replace("양","").replace("과학과학탐구실험", ""))
-
-        # 과목 패턴 구성
-        subject_mapping = {
-            '기술': 'etc',        # 제2외국어 등
-            '국어': 'korean',
-            '수학': 'math',
-            '영어': 'english',
-            '사회': 'social',
-            '과학': 'science',
-            '한국사': 'history'
-        }
-
-        grade_dict = {}
-        for kor_subject, eng_subject in subject_mapping.items():
-            # 패턴: 과목명 뒤에 성취도(A-F) + 괄호 인원수 + 등수
-            pattern = rf'(?<![가-힣]){re.escape(kor_subject)}.*?[A-F]\(?\d+\)?\s*(\d)'
-            matches = re.findall(pattern, text)
-            if matches:
-                grade_dict[eng_subject] = [int(rank) for rank in matches]
-
-
-        return grade_dict
-
-
     # 세특 추출 메서드
     def extract_features(self, text):
         if "세부능력" not in text:
@@ -116,12 +78,10 @@ class OCRService:
     # 메인 파이프라인 함수 정의
     def process_document(self, text):
         cleaned_text = self.clean_text(text)
-        grades = self.extract_grades(cleaned_text)
         features = self.extract_features(cleaned_text)
 
         return {
             "text": cleaned_text,
-            "grades": grades,
             "features": features
         }
 
@@ -172,7 +132,7 @@ class OCRService:
                     "text": f"Exception: {str(e)}"
                 }
 
-    # ocr 전송: 마지막 페이지 제외
+    # ocr 전송
     async def process_pdf_ocr(self, pdf_bytes: bytes):
         images = convert_from_bytes(pdf_bytes, dpi=300)
         results = []
