@@ -18,5 +18,6 @@ async def upload_document(
         file: UploadFile = File(...),
 ):
     document_response = await document_service.process_document(file, current_user.get("email"))
+    # document_response = await document_service.test(current_user.get("email"))
 
     return CommonResponse.success_response("생활기록부 업로드 성공", document_response)
