@@ -46,6 +46,10 @@ async def websocket_interview(websocket: WebSocket, interview_id: str):
             # 오디오 수신
             audio_data = await websocket.receive_bytes()
 
+            # 꼬리 질문 생성
+                # 질문 생성 후 db 저장
+                # questions 질문 리스트에 질문 모델 추가.
+
             # 임시 파일로 저장
             with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_file:
                 temp_file.write(audio_data)
