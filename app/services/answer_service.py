@@ -51,7 +51,7 @@ class AnswerService:
         hesitant_endings = [word for word in predicates if word in ['같은데', '같아요', '같습니다', '듯 합니다', '느낌이에요']]
 
 
-        await AnswerService.answer_repo.update_answer(answer_id, {"lexical_analysis": final_result, "endings_analysis": hesitant_endings})
+        # await AnswerService.answer_repo.update_answer(answer_id, {"lexical_analysis": final_result, "endings_analysis": hesitant_endings})
         print("✅ 분석 후 저장 완료")
         return final_result, hesitant_endings
 
