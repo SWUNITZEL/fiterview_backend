@@ -2,6 +2,7 @@ import requests
 import json
 
 from app.core.config import settings
+from app.core.exceptions.base import AppException
 from app.repository.answer_repository import AnswerRepository
 
 
@@ -156,6 +157,11 @@ class SttService:
             'params': (None, json.dumps(request_body, ensure_ascii=False).encode('UTF-8'), 'application/json')
         }
         response = requests.post(headers=headers, url=self.invoke_url + '/recognizer/upload', files=files)
-        sentence = json.loads(response.text).get("segments", [])[0].get("text")
+        result = json.loads(response.text)
+        segments = result.get("segments", [])
+        if segments:
+            sentence = segments[0].get("text")
+        else:
+            sentence = None
 
         return sentence
