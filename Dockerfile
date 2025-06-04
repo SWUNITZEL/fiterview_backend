@@ -13,13 +13,17 @@ RUN pip install --no-cache-dir -r /code/requirements.txt
 RUN pip install requests
 
 # mecab 설치
-RUN cd /code && \
-    curl -s https://raw.githubusercontent.com/konlpy/konlpy/master/scripts/mecab.sh | bash -s
+RUN apt-get update && apt-get install -y \
+    mecab \
+    libmecab-dev \
+    mecab-ipadic-utf8 \
+    curl \
+    git \
+    gcc \
+    poppler-utils \
+    libgl1-mesa-glx
 
-# poppler 추가
-RUN apt-get update && \
-    apt-get install -y libgl1-mesa-glx \
-    poppler-utils
+RUN pip install konlpy mecab-python3
 
 # 애플리케이션 코드 복사
 COPY ./app /code/app
