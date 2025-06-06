@@ -1,4 +1,7 @@
+from typing import Optional
+
 from bson import ObjectId
+from pymongo import ReturnDocument
 
 from app.core.database import database
 from app.models.answer_model import Answer
@@ -17,12 +20,23 @@ class AnswerRepository:
         cursor = self.collection.find()
         return await cursor.to_list(length=None)
 
-    async def update_answer(self, answer_id: str, update_data: dict):
-        result = await self.collection.update_one(
+    async def update_answer(self, answer_id: str, update_data: dict) -> Optional[Answer]:
+        updated_doc = await self.collection.find_one_and_update(
             {"_id": ObjectId(answer_id)},
-            {"$set": update_data}
+            {"$set": update_data},
+            return_document=ReturnDocument.AFTER
         )
-        return result.modified_count
+        return Answer(**updated_doc)
 
     async def get_answer_id(self, answer_id: str):
         return await self.collection.find_one({"_id": ObjectId(answer_id)})
+
+    async def get_by_interview_id_and_question_id(self, interview_id: str, question_id: str) -> Optional[Answer]:
+        doc = await self.collection.find_one({
+            "interview_id": interview_id,
+            "question_id": question_id
+        })
+        if doc:
+            doc["id"] = str(doc["_id"])
+            return Answer(**doc)
+        return None

@@ -16,3 +16,7 @@ class ImageNotFoundException(AppException):
 class InterviewNotFoundException(AppException):
     def __init__(self, message: str = "인터뷰를 찾을 수 없습니다."):
         super().__init__(message=message, status_code=status.HTTP_404_NOT_FOUND)
+
+class QuestionNotFoundException(AppException):
+    def __init__(self, message: str = "질문을 찾을 수 없습니다."):
+        super().__init__(message=message, status_code=status.HTTP_404_NOT_FOUND)

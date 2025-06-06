@@ -12,6 +12,7 @@ from app.analysis.postureAnalysis import *
 from app.core.exceptions.custom import *
 from app.repository.answer_repository import *
 from app.repository.interview_repository import InterviewRepository
+from app.repository.question_repository import QuestionRepository
 from app.schemas.response.analysis_video_response import AnalysisVideoResponse
 from app.services.s3_service import S3Service
 
@@ -19,6 +20,7 @@ from app.services.s3_service import S3Service
 class AnswerService:
     answer_repo = AnswerRepository()
     interview_repo = InterviewRepository()
+    question_repo = QuestionRepository()
 
 
     # 어미 분석, 어휘 다양성 분석 서비스 함수
@@ -60,8 +62,14 @@ class AnswerService:
         # 인터뷰 존재 여부 확인
         interview = await AnswerService.interview_repo.find_by_id(interview_id)
         if interview is None:
-            raise InterviewNotFoundException();
+            raise InterviewNotFoundException()
 
+        # 질문 존재 여부 확인
+        question = await AnswerService.question_repo.find_by_id(question_id)
+        if question is None:
+            raise QuestionNotFoundException()
+
+        # 기준 데이터 구하기
         calibration_data  = await AnswerService.interview_repo.find_by_id(interview_id)
 
         # 임시 파일 생성
@@ -70,8 +78,11 @@ class AnswerService:
             with open(temp_file_path, "wb") as buffer:
                 shutil.copyfileobj(file.file, buffer)
 
+        # answer 찾기
+        answer = await AnswerService.answer_repo.get_by_interview_id_and_question_id(interview_id, question_id)
+
         # 영상 s3에 업로드
-        video_url = await S3Service.upload_video_file_to_s3(temp_file_path, interview_id, "sdsda") # answer_id 수정 필요
+        video_url = await S3Service.upload_video_file_to_s3(temp_file_path, interview_id, answer.id)
 
         try:
             # 분석 수행
@@ -192,17 +203,40 @@ class AnswerService:
 
             smile_ratio = round(smiling_frames / total_frames, 4)
 
+            # 분석 결과 저장
+            update_data = {
+                "smile_ratio": smile_ratio,
+                "gaze_down_count": gaze_down_count,
+                "gaze_points": gaze_points,
+                "shoulder_tilt_count": shoulder_tilt_count,
+                "turn_left_count": turn_left_count,
+                "turn_right_count": turn_right_count,
+                "video_url": video_url
+            }
+
+            # 결과 업데이트
+            try:
+                updated_answer = await S3Service.answer_repo.update_answer(answer.id, update_data)
+
+                if not updated_answer:
+                    print(f"❌ answer_id={answer.id}에 대한 DB 업데이트 실패")
+                    raise AppException(status_code=404, detail="Answer를 찾을 수 없거나 업데이트에 실패했습니다.")
+
+            except Exception as e:
+                print(f"❌ DB 업데이트 중 오류: {e}")
+                raise AppException(status_code=500, detail="DB 업데이트 중 오류가 발생했습니다.")
+
             return AnalysisVideoResponse(
-                interviewId=interview_id,
-                answerId=question_id,
-                questionId=question_id,
-                smileRatio=smile_ratio,
-                gazeDownCount=gaze_down_count,
-                gazePoints=gaze_points,
-                shoulderTiltCount=shoulder_tilt_count,
-                turnLeftCount=turn_left_count,
-                turnRightCount=turn_right_count,
-                videoUrl=video_url
+                interviewId=updated_answer.interview_id,
+                answerId=str(updated_answer.id),
+                questionId=updated_answer.question_id,
+                smileRatio=updated_answer.smile_ratio,
+                gazeDownCount=updated_answer.gaze_down_count,
+                gazePoints=updated_answer.gaze_points,
+                shoulderTiltCount=updated_answer.shoulder_tilt_count,
+                turnLeftCount=updated_answer.turn_left_count,
+                turnRightCount=updated_answer.turn_right_count,
+                videoUrl=updated_answer.video_url
             )
 
         finally:
