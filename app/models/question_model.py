@@ -15,3 +15,4 @@ class Question(BaseModel):
     major: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    followupQuestion: Optional[str] = None  # 단일 꼬리질문
