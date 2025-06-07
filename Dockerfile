@@ -14,9 +14,6 @@ RUN pip install requests
 
 # mecab 설치
 RUN apt-get update && apt-get install -y \
-    mecab \
-    libmecab-dev \
-    mecab-ipadic-utf8 \
     curl \
     git \
     gcc \
