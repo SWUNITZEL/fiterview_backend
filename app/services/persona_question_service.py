@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import List, Optional
 from app.core.config import settings
 from app.models.question_model import Question
-from app.schemas.question_schema import QuestionOutput
+from app.schemas.response.question_response import QuestionOutput
 
 client = openai.OpenAI(api_key=settings.GPT_API_KEY)
 
@@ -108,4 +108,3 @@ class PersonaQuestionService:
             ))
 
         return questions
-
