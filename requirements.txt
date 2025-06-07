@@ -218,7 +218,6 @@ zipp==3.21.0
 pdf2image
 
 konlpy
-mecab-python3
 requests
 pyjwt
 boto3

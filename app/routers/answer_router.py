@@ -14,10 +14,10 @@ async def answer_analysis(answer_id:str, answer: str):
             raise HTTPException(status_code=404, detail="answer is empty.")
 
         # 분석 함수 실행
-        final_result, hesitant_endings = await AnswerService.analysis_answer(answer_id, answer)
+        final_result, ending_score = await AnswerService.analysis_answer(answer_id, answer)
 
 
-        return JSONResponse([final_result, hesitant_endings])
+        return JSONResponse([final_result, ending_score])
 
     except HTTPException as http_exc:
         raise http_exc

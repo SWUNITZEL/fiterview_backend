@@ -4,8 +4,9 @@ import tempfile
 
 import cv2
 from fastapi import UploadFile
-from konlpy.tag import Mecab
+from konlpy.tag import Okt
 from collections import Counter
+import re
 
 from app.analysis.face_mesh_analysis import *
 from app.analysis.postureAnalysis import *
@@ -18,44 +19,75 @@ from app.services.s3_service import S3Service
 
 
 class AnswerService:
+
+
     answer_repo = AnswerRepository()
     interview_repo = InterviewRepository()
     question_repo = QuestionRepository()
 
+    # 흐리는 표현 후보
+    HESITANT_EXPRESSIONS = [
+        '같다', '같은데', '같아요', '같습니다', '듯하다', '듯 합니다', '느낌이에요', '것 같다', '것 같아요'
+    ]
 
-    # 어미 분석, 어휘 다양성 분석 서비스 함수
-    async def analysis_answer(answer_id: str, answer: str) :
-        m = Mecab()
+    okt = Okt()
 
-        # Mecab의 전체 품사 태깅 결과 확인
-        pos_list = m.pos(answer)
+    # 답변분석 메서드
+    async def analysis_answer( answer_id: str, answer: str):
+        # 형태소 분석
+        pos_list = AnswerService.extract_pos(answer)
+        # 자주 사용된 단어
+        word_list = AnswerService.extract_word(pos_list)
+        # 말끝을 흐리는 표현
+        predicates = AnswerService.extract_predicates(pos_list)
 
-        # 형태소 분석: 명사, 동사, 형용사 등 주요 품사 추출
-        words = [(word, pos) for word, pos in m.pos(answer) if
-                 pos.startswith('N') or pos.startswith('V') or pos.startswith('MM')]
+        # 말끝 흐리는 표현만 필터링
+        hesitant = [p for p in predicates if any(p.endswith(h) for h in AnswerService.HESITANT_EXPRESSIONS)]
 
-        # 답변 다양성
+        total = len(predicates)
+        hesitant_count = len(hesitant)
+        score = int(round(hesitant_count / total, 2) * 100) if total else 0
+
+        # await AnswerService.answer_repo.update_answer(answer_id,
+        #                                               {"lexical_analysis": word_list, "endings_score": score})
+
+        return word_list, score
+
+    # 형태소 분석
+    def extract_pos(text):
+        pos = AnswerService.okt.pos(text, stem=True)
+        return pos
+
+    # 자주쓰는 단어들 추출
+    def extract_word(pos_list):
+        words = [(word, pos) for word, pos in pos_list if pos in ['Noun', 'Verb', 'Adjective', 'Determiner']]
+        print("주요 품사 단어:", words)
+
+        # 형태소 카운트 (답변 다양성)
         morph_counter = Counter(words).most_common()
-        final_result = [(word, count) for (word, pos), count in morph_counter]
+        word_list = [(word, count) for (word, pos), count in morph_counter]
+        print("답변 다양성:", word_list)
 
-        # 서술어 추출
+        return word_list
+
+    # 말 끝을 흐리는 어미 추출
+    def extract_predicates(pos_list):
         predicates = []
-
         for i in range(1, len(pos_list)):
-            if "EF" in pos_list[i][1]:
-                if pos_list[i - 1][1].startswith("N"):
-                    predicates.append(pos_list[i][0])
+            word, tag = pos_list[i]
+            prev_word, prev_tag = pos_list[i - 1]
 
+            if tag in ['Verb', 'Adjective']:
+                if prev_tag == 'Noun':
+                    combined = prev_word + word
                 else:
-                    predicates.append(pos_list[i - 1][0] + pos_list[i][0])
+                    combined = word
 
+                # 특수문자 제거
+                clean = re.sub(r'^[^\w가-힣]+|[^\w가-힣]+$', '', combined)
+                predicates.append(clean)
 
-        hesitant_endings = [word for word in predicates if word in ['같은데', '같아요', '같습니다', '듯 합니다', '느낌이에요']]
-
-
-        # await AnswerService.answer_repo.update_answer(answer_id, {"lexical_analysis": final_result, "endings_analysis": hesitant_endings})
-        print("✅ 분석 후 저장 완료")
-        return final_result, hesitant_endings
+        return predicates
 
     # 영상에서 표정, 시선처리, 자세 분석 함수
     async def analysis_answer_video(file: UploadFile, interview_id: str, question_id: str) -> AnalysisVideoResponse:
