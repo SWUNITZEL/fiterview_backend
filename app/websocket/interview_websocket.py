@@ -17,10 +17,8 @@ async def websocket_interview(websocket: WebSocket, interview_id: str):
         # interview_id 기반 질문들 불러오기
         questions = await repo.get_questions_by_interview_id(interview_id)
         questions.sort(key=lambda q: q.question_index, reverse=False)
-        print(len(questions))
 
         for question in questions:
-            print(question.question_text)
             # 질문 전송
             if question.question_index == question.total_questions:
                 await websocket.send_text(
@@ -67,8 +65,6 @@ async def websocket_interview(websocket: WebSocket, interview_id: str):
                     answer=sentence
                 )
                 await SttService.repo.insert_document(answer)
-
-                print(sentence)
             finally:
                 # 파일 삭제
                 os.remove(temp_path)
