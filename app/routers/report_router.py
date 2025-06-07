@@ -12,7 +12,7 @@ router = APIRouter(dependencies=[Depends(auth_service.get_current_user)])
 @router.post("/interview/report", response_model=ReportResponse)
 async def generate_report(data: ReportRequest):
     """
-    면접 결과 보고서를 생성하는 API
+    면접 결과 보고서 생성 API
 
     Args:
         data (ReportRequest): 면접 보고서 생성에 필요한 데이터
@@ -45,7 +45,7 @@ async def generate_report(data: ReportRequest):
                 - question (str): 질문 내용
                 - intent (str): 질문의 의도
                 - answerSummary (str): 답변 요약
-                - answerImprovement (str): 답변 개선 제안
+                - answerImprovement (str): 답변 개선 (맞춤법)
 
     Example Response:
         {
