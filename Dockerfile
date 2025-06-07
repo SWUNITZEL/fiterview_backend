@@ -25,6 +25,10 @@ RUN mkdir -p /usr/lib/jvm && \
 ENV JAVA_HOME=/usr/lib/jvm/jdk-17
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
+# requirements.txt 를 보고 모듈 전체 설치(-r)
+RUN pip install --no-cache-dir -r /code/requirements.txt
+RUN pip install requests
+
 # 애플리케이션 코드 복사
 COPY ./app /code/app
 
