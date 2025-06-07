@@ -26,68 +26,68 @@ class AnswerService:
     question_repo = QuestionRepository()
 
     # 흐리는 표현 후보
-    # HESITANT_EXPRESSIONS = [
-    #     '같다', '같은데', '같아요', '같습니다', '듯하다', '듯 합니다', '느낌이에요', '것 같다', '것 같아요'
-    # ]
+    HESITANT_EXPRESSIONS = [
+        '같다', '같은데', '같아요', '같습니다', '듯하다', '듯 합니다', '느낌이에요', '것 같다', '것 같아요'
+    ]
 
-    # okt = Okt()
-    #
-    # # 답변분석 메서드
-    # async def analysis_answer( answer_id: str, answer: str):
-    #     # 형태소 분석
-    #     pos_list = AnswerService.extract_pos(answer)
-    #     # 자주 사용된 단어
-    #     word_list = AnswerService.extract_word(pos_list)
-    #     # 말끝을 흐리는 표현
-    #     predicates = AnswerService.extract_predicates(pos_list)
-    #
-    #     # 말끝 흐리는 표현만 필터링
-    #     hesitant = [p for p in predicates if any(p.endswith(h) for h in AnswerService.HESITANT_EXPRESSIONS)]
-    #
-    #     total = len(predicates)
-    #     hesitant_count = len(hesitant)
-    #     score = int(round(hesitant_count / total, 2) * 100) if total else 0
-    #
-    #     # await AnswerService.answer_repo.update_answer(answer_id,
-    #     #                                               {"lexical_analysis": word_list, "endings_score": score})
-    #
-    #     return word_list, score
-    #
-    # # 형태소 분석
-    # def extract_pos(text):
-    #     pos = AnswerService.okt.pos(text, stem=True)
-    #     return pos
-    #
-    # # 자주쓰는 단어들 추출
-    # def extract_word(pos_list):
-    #     words = [(word, pos) for word, pos in pos_list if pos in ['Noun', 'Verb', 'Adjective', 'Determiner']]
-    #     print("주요 품사 단어:", words)
-    #
-    #     # 형태소 카운트 (답변 다양성)
-    #     morph_counter = Counter(words).most_common()
-    #     word_list = [(word, count) for (word, pos), count in morph_counter]
-    #     print("답변 다양성:", word_list)
-    #
-    #     return word_list
-    #
-    # # 말 끝을 흐리는 어미 추출
-    # def extract_predicates(pos_list):
-    #     predicates = []
-    #     for i in range(1, len(pos_list)):
-    #         word, tag = pos_list[i]
-    #         prev_word, prev_tag = pos_list[i - 1]
-    #
-    #         if tag in ['Verb', 'Adjective']:
-    #             if prev_tag == 'Noun':
-    #                 combined = prev_word + word
-    #             else:
-    #                 combined = word
-    #
-    #             # 특수문자 제거
-    #             clean = re.sub(r'^[^\w가-힣]+|[^\w가-힣]+$', '', combined)
-    #             predicates.append(clean)
-    #
-    #     return predicates
+    okt = Okt()
+
+    # 답변분석 메서드
+    async def analysis_answer( answer_id: str, answer: str):
+        # 형태소 분석
+        pos_list = AnswerService.extract_pos(answer)
+        # 자주 사용된 단어
+        word_list = AnswerService.extract_word(pos_list)
+        # 말끝을 흐리는 표현
+        predicates = AnswerService.extract_predicates(pos_list)
+
+        # 말끝 흐리는 표현만 필터링
+        hesitant = [p for p in predicates if any(p.endswith(h) for h in AnswerService.HESITANT_EXPRESSIONS)]
+
+        total = len(predicates)
+        hesitant_count = len(hesitant)
+        score = int(round(hesitant_count / total, 2) * 100) if total else 0
+
+        # await AnswerService.answer_repo.update_answer(answer_id,
+        #                                               {"lexical_analysis": word_list, "endings_score": score})
+
+        return word_list, score
+
+    # 형태소 분석
+    def extract_pos(text):
+        pos = AnswerService.okt.pos(text, stem=True)
+        return pos
+
+    # 자주쓰는 단어들 추출
+    def extract_word(pos_list):
+        words = [(word, pos) for word, pos in pos_list if pos in ['Noun', 'Verb', 'Adjective', 'Determiner']]
+        print("주요 품사 단어:", words)
+
+        # 형태소 카운트 (답변 다양성)
+        morph_counter = Counter(words).most_common()
+        word_list = [(word, count) for (word, pos), count in morph_counter]
+        print("답변 다양성:", word_list)
+
+        return word_list
+
+    # 말 끝을 흐리는 어미 추출
+    def extract_predicates(pos_list):
+        predicates = []
+        for i in range(1, len(pos_list)):
+            word, tag = pos_list[i]
+            prev_word, prev_tag = pos_list[i - 1]
+
+            if tag in ['Verb', 'Adjective']:
+                if prev_tag == 'Noun':
+                    combined = prev_word + word
+                else:
+                    combined = word
+
+                # 특수문자 제거
+                clean = re.sub(r'^[^\w가-힣]+|[^\w가-힣]+$', '', combined)
+                predicates.append(clean)
+
+        return predicates
 
     # 영상에서 표정, 시선처리, 자세 분석 함수
     async def analysis_answer_video(file: UploadFile, interview_id: str, question_id: str) -> AnalysisVideoResponse:
