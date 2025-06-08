@@ -13,6 +13,7 @@ class Question(BaseModel):
     total_questions: Optional[int] = None
     persona: Optional[str] = None
     major: Optional[str] = None
+    university: Optional[str] = None # 대학 추가
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     followupQuestion: Optional[str] = None  # 단일 꼬리질문

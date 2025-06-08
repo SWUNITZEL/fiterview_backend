@@ -13,11 +13,12 @@ class QuestionRepository:
     async def find_by_id(self, id: str) -> Optional[dict]:
         return await self.collection.find_one({"_id": ObjectId(id)})
 
-    async def save_questions(self, persona: str, major: str, questions: List[str]) -> List[str]:
+    async def save_questions(self, persona: str, major: str, university :str, questions: List[str]) -> List[str]:
         docs = [
             Question(
                 persona=persona,
                 major=major,
+                university=university,   #프롬프트 정확성 위해 추가
                 question=q,
                 created_at=datetime.utcnow()
             ).model_dump()

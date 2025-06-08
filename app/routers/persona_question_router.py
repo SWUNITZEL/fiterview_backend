@@ -18,6 +18,7 @@ async def generate_questions_from_pdf(
     file: UploadFile = File(...),
     persona_label: str = Form(...),
     major: str = Form(...),
+    university: str = Form(...),
     interview_id: str = Form(...)
 ):
     try:
@@ -39,6 +40,7 @@ async def generate_questions_from_pdf(
             document_text=document_text,
             persona_label=persona_label,
             major=major,
+            university=university,
             interview_id=interview_id
         )
 
@@ -46,6 +48,7 @@ async def generate_questions_from_pdf(
         question_ids = await question_repo.save_questions(
             persona=persona_label,
             major=major,
+            university=university,
             questions=questions
         )
 
