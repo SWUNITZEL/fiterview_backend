@@ -20,5 +20,7 @@ class Answer(BaseModel):
     turn_left_count: Optional[int] = None
     turn_right_count: Optional[int] = None
     video_url: Optional[str] = None
+    speaking_speed: Optional[float] = None
+    pitch_mean: Optional[float] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None

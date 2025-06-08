@@ -222,3 +222,4 @@ requests
 pyjwt
 boto3
 openai
+pydub
