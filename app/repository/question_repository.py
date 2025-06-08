@@ -10,6 +10,9 @@ class QuestionRepository:
     def __init__(self):
         self.collection = question_collection
 
+    async def find_by_id(self, id: str) -> Optional[dict]:
+        return await self.collection.find_one({"_id": ObjectId(id)})
+
     async def save_questions(self, persona: str, major: str, questions: List[str]) -> List[str]:
         docs = [
             Question(
