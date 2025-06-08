@@ -223,3 +223,4 @@ pyjwt
 boto3
 openai
 pydub
+praat-parselmouth
