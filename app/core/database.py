@@ -10,7 +10,4 @@ client = AsyncIOMotorClient(
 )
 database = client[settings.MONGO_DB_NAME]
 
-def get_mongo_client():
-    return client
-
 
