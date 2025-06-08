@@ -4,10 +4,11 @@ from typing import List, Optional
 class QuestionReport(BaseModel):
     question: str
     intent: str
-    answerSummary: str
-    answerImprovement: str
+    answerText: str
+    evaluation: List[str]  # 카테고리 제목 리스트
+    goodExample: str  # 개선된 모범 답변
+    summary: str  # 답변 총평
     followupQuestions: Optional[List[str]] = None
 
 class ReportResponse(BaseModel):
-    interviewType: str
     report: List[QuestionReport]

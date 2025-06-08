@@ -7,7 +7,7 @@ from app.core.exceptions.base import AppException
 from app.core.exceptions.handlers import app_exception_handler
 from app.core.response import CommonResponse
 from app.routers import (document_router, answer_router, test_router, user_router, interview_router,
-                         selfinfo_feedback_router, persona_question_router, report_router)
+                         persona_question_router, report_router)
 from app.websocket.interview_websocket import websocket_interview
 
 app = FastAPI()
@@ -22,7 +22,6 @@ app.include_router(user_router.router)
 app.include_router(interview_router.router)
 app.include_router(answer_router.router)
 app.include_router(document_router.router)
-app.include_router(selfinfo_feedback_router.router)
 app.include_router(persona_question_router.router)
 app.include_router(report_router.router)
 
