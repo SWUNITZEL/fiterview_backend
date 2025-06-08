@@ -39,19 +39,13 @@ class AnswerService:
         # 자주 사용된 단어
         word_list = AnswerService.extract_word(pos_list)
         # 말끝을 흐리는 표현
-        predicates = AnswerService.extract_predicates(pos_list)
+        hesitant_list, score = AnswerService.extract_predicates(pos_list)
 
-        # 말끝 흐리는 표현만 필터링
-        hesitant = [p for p in predicates if any(p.endswith(h) for h in AnswerService.HESITANT_EXPRESSIONS)]
-
-        total = len(predicates)
-        hesitant_count = len(hesitant)
-        score = int(round(hesitant_count / total, 2) * 100) if total else 0
 
         # await AnswerService.answer_repo.update_answer(answer_id,
-        #                                               {"lexical_analysis": word_list, "endings_score": score})
+        #                                               {"lexical_analysis": word_list, "hesitant_list": hesitant_list, "endings_score": score})
 
-        return word_list, score
+        return word_list, hesitant_list, score
 
     # 형태소 분석
     def extract_pos(text):
@@ -87,7 +81,17 @@ class AnswerService:
                 clean = re.sub(r'^[^\w가-힣]+|[^\w가-힣]+$', '', combined)
                 predicates.append(clean)
 
-        return predicates
+        # 말끝 흐리는 표현만 필터링
+        hesitant = [p for p in predicates if any(p.endswith(h) for h in AnswerService.HESITANT_EXPRESSIONS)]
+        counter = Counter(hesitant)
+        sorted_hesitant = [word for word, _ in counter.most_common()]
+
+        total = len(predicates)
+        hesitant_count = len(hesitant)
+
+        score = int(round(hesitant_count / total, 2) * 100) if total else 0
+
+        return sorted_hesitant, score
 
     # 영상에서 표정, 시선처리, 자세 분석 함수
     async def analysis_answer_video(file: UploadFile, interview_id: str, question_id: str) -> AnalysisVideoResponse:
