@@ -36,6 +36,7 @@ class PersonaQuestionService:
         document_text: str,
         persona_label: str,
         major: str,
+        university: str,
         interview_id: str
     ) -> List[QuestionOutput]:
         prompt = f"""
@@ -46,7 +47,7 @@ class PersonaQuestionService:
 아래는 한 수험생의 자기소개서 또는 생활기록부입니다.
 
 아래 형식에 따라 총 10개의 질문을 생성하세요.  
-질문은 지원 전공 '{major}'과 문서 내용을 기반으로 하며, 면접관의 성격도 반영되어야 합니다.
+질문은 지원 전공 '{major}'과 지원 대학 '{university}' 정보를 반영하며, 문서 내용을 기반으로 면접관의 성격도 드러나야 합니다.
 
 [질문 구성]
 1. 자기소개 요청  
@@ -55,6 +56,8 @@ class PersonaQuestionService:
 4. 장단점  
 5~9. 경험·가치관·활동 등 기반 심화질문  
 10. 마지막 한마디 요청
+
+질문은 오직 10개만 생성하세요. 인사말이나 마무리 멘트는 제외합니다.
 
 [문서 내용]
 {document_text}
@@ -80,6 +83,7 @@ class PersonaQuestionService:
                 totalQuestions=len(question_lines),
                 personaLabel=persona_label,
                 major=major,
+                university=university,
                 createdAt=datetime.utcnow(),
                 updatedAt=datetime.utcnow()
             ))
