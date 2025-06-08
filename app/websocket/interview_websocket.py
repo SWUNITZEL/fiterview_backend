@@ -1,14 +1,20 @@
 import os
 import tempfile
 import json
+import datetime
+
+from pydub import AudioSegment
 from fastapi import WebSocket, WebSocketDisconnect
 
+from app.analysis.voice_anlaysis import calculate_pitch_mean
 from app.models.answer_model import Answer
+from app.repository.answer_repository import AnswerRepository
 from app.repository.question_repository import QuestionRepository
 from app.schemas.response.interview_question_response import InterviewQuestionResponse
 from app.services.stt_service import SttService
 
 repo = QuestionRepository()
+answer_repo = AnswerRepository()
 
 async def websocket_interview(websocket: WebSocket, interview_id: str):
     await websocket.accept()
@@ -58,13 +64,31 @@ async def websocket_interview(websocket: WebSocket, interview_id: str):
                 if sentence is None:
                     websocket.send_text("텍스트를 추출할 수 없습니다.")
 
+                # 속도 계산
+                audio = AudioSegment.from_file(temp_path)
+                duration_sec = len(audio) / 1000.0  # ms → sec
+
+                char_count = len(sentence.replace(" ", ""))  # 공백 제외 문자 수
+                if duration_sec > 0:
+                    speaking_speed = char_count / duration_sec  # 문자/초
+                else:
+                    speaking_speed = 0
+
+                # 평균 데시벨 계산
+                pitch_mean = calculate_pitch_mean(temp_path)
+                if pitch_mean is None:
+                    websocket.send_text("데시벨 계산 중 오류 발생")
+
                 # 답변 저장
                 answer = Answer(
-                    interview_id=interview_id,
-                    question_id=question.id,
-                    answer=sentence
+                    interview_id = interview_id,
+                    question_id = question.id,
+                    answer = sentence,
+                    speaking_speed = speaking_speed,
+                    pitch_mean = pitch_mean,
+                    created_at=datetime.datetime.utcnow()
                 )
-                await SttService.repo.insert_document(answer)
+                await answer_repo.insert_document(answer)
             finally:
                 # 파일 삭제
                 os.remove(temp_path)

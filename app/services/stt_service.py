@@ -2,12 +2,9 @@ import requests
 import json
 
 from app.core.config import settings
-from app.core.exceptions.base import AppException
 from app.repository.answer_repository import AnswerRepository
 
-
 class SttService:
-    repo = AnswerRepository()
     # Clova Speech invoke URL
     invoke_url = settings.CLOVA_SPEECH_URL
     # Clova Speech secret key
