@@ -1,7 +1,6 @@
 from pathlib import Path
 
 from fastapi import APIRouter, Depends
-from numba.scripts.generate_lower_listing import description
 
 from app.core.response import CommonResponse
 from app.services.auth_service import AuthService
