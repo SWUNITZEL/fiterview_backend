@@ -1,13 +1,23 @@
 import openai
 from datetime import datetime
-from typing import List, Optional
+from typing import List
 from app.core.config import settings
-from app.models.question_model import Question
-from app.schemas.response.question_response import QuestionOutput
+from app.core.exceptions.base import AppException
+from app.repository.combine_repository import CombineRepository
+from app.repository.document_repository import DocumentRepository
+from app.repository.interview_repository import InterviewRepository
+from app.repository.question_repository import QuestionRepository
+from app.schemas.response.question_response import QuestionOutput, CreatePersonaQuestionResponse
 
 client = openai.OpenAI(api_key=settings.GPT_API_KEY)
 
+
 class PersonaQuestionService:
+    combine_repo = CombineRepository()
+    interview_repo = InterviewRepository()
+    document_repo = DocumentRepository()
+    question_repo = QuestionRepository()
+
     """
     페르소나 기반 질문 목록
 
@@ -31,13 +41,14 @@ class PersonaQuestionService:
             }
         ]
     """
+
     @staticmethod
     async def generate_interview_questions(
-        document_text: str,
-        persona_label: str,
-        major: str,
-        university: str,
-        interview_id: str
+            document_text: str,
+            persona_label: List[str],
+            major: str,
+            university: str,
+            interview_id: str
     ) -> List[QuestionOutput]:
         prompt = f"""
 당신은 다음과 같은 성향의 대학 면접관입니다:
@@ -89,3 +100,38 @@ class PersonaQuestionService:
             ))
 
         return questions
+
+    async def createPersonaQuestion(interview_id: str) -> CreatePersonaQuestionResponse:
+        interview = await PersonaQuestionService.interview_repo.find_by_id(interview_id)
+        if interview is None:
+            raise AppException(status_code=404, message="인터뷰를 찾을 수 없습니다.")
+
+        combine_id = interview["combine_id"]
+        combine = await PersonaQuestionService.combine_repo.find_by_id(combine_id)
+        if combine is None:
+            raise AppException(status_code=404, message="면접 조합을 찾을 수 없습니다.")
+
+        user_id = combine["user_d"]
+        document = await PersonaQuestionService.document_repo.find_by_user_email(user_id)
+
+        questions = await PersonaQuestionService.generate_interview_questions(
+            document_text=document["features"],
+            persona_label=combine["department"],
+            major=combine["department"],
+            university=combine["university"],
+            interview_id=interview_id
+        )
+
+        # MongoDB에 저장
+        await PersonaQuestionService.question_repo.save_questions(
+            persona=combine["persona"],
+            major=combine["department"],
+            university=combine["university"],
+            questions=questions
+        )
+
+        return CreatePersonaQuestionResponse(
+            # personaLabel=combine["persona"],
+            # department=combine["department"],
+            questions=questions
+        )

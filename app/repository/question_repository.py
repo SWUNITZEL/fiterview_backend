@@ -13,7 +13,7 @@ class QuestionRepository:
     async def find_by_id(self, id: str) -> Optional[dict]:
         return await self.collection.find_one({"_id": ObjectId(id)})
 
-    async def save_questions(self, persona: str, major: str, university :str, questions: List[str]) -> List[str]:
+    async def save_questions(self, persona: List[str], major: str, university :str, questions: List[str]) -> List[str]:
         docs = [
             Question(
                 persona=persona,

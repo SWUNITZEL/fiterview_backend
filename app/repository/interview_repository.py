@@ -15,7 +15,7 @@ class InterviewRepository:
         result = await self.collection.insert_one(interview.model_dump())
         return str(result.inserted_id)
 
-    async def find_by_id(self, id: str) -> Optional[dict]:
+    async def find_by_id(self, id: str) -> Interview:
         return await self.collection.find_one({"_id": ObjectId(id)})
 
     async def update(self, id: str, update_fields: dict) -> bool:
