@@ -115,7 +115,7 @@ class PersonaQuestionService:
         document = await PersonaQuestionService.document_repo.find_by_user_email(user_id)
 
         questions = await PersonaQuestionService.generate_interview_questions(
-            document_text=document["question_text"],
+            document_text=document["content"],
             persona_label=combine["department"],
             major=combine["department"],
             university=combine["university"],
