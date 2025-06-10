@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
 from datetime import datetime
@@ -11,7 +11,7 @@ class Question(BaseModel):
     question_text: Optional[str] = None
     question_index: Optional[int] = None
     total_questions: Optional[int] = None
-    persona: Optional[str] = None
+    persona: Optional[List[str]] = None
     major: Optional[str] = None
     university: Optional[str] = None # 대학 추가
     created_at: Optional[datetime] = None
