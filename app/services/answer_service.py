@@ -134,6 +134,8 @@ class AnswerService:
             gaze_frame_index = 0
             gaze_sampling_rate = 5
             gaze_points = []
+            blink_count = 0
+            blink_threshold = 0.21
             saved_gaze_x = 0
             saved_gaze_y = 0
 
@@ -169,6 +171,9 @@ class AnswerService:
                         # 시선이 아래로 향하면 카운터에 1 추가
                         if ear < calibration_data["ear"] * (2/3):
                             gaze_down_frame_count += 1
+
+                        if ear < blink_threshold:
+                            blink_count += 1
 
                         else :
                             gaze_down_frame_count = 0
@@ -244,6 +249,7 @@ class AnswerService:
                 "smile_ratio": smile_ratio,
                 "gaze_down_count": gaze_down_count,
                 "gaze_points": gaze_points,
+                "blink_count": blink_count,
                 "shoulder_tilt_count": shoulder_tilt_count,
                 "turn_left_count": turn_left_count,
                 "turn_right_count": turn_right_count,
@@ -269,6 +275,7 @@ class AnswerService:
                 smileRatio=updated_answer.smile_ratio,
                 gazeDownCount=updated_answer.gaze_down_count,
                 gazePoints=updated_answer.gaze_points,
+                blinkCount=blink_count,
                 shoulderTiltCount=updated_answer.shoulder_tilt_count,
                 turnLeftCount=updated_answer.turn_left_count,
                 turnRightCount=updated_answer.turn_right_count,
