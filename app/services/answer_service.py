@@ -130,7 +130,9 @@ class AnswerService:
             gaze_down_count = 0
             gaze_down_frame_count = 0
             smiling_frames = 0
-            total_frames = 0
+            total_frames = 0  # 영상 총 프레 수
+            fps = cap.get(cv2.CAP_PROP_FPS) # Frame Per Second
+            duration_seconds = total_frames / fps # 전체 영상 길이 (초 단위)
             gaze_frame_index = 0
             gaze_sampling_rate = 5
             gaze_points = []
@@ -219,6 +221,9 @@ class AnswerService:
                         else:
                             raise AppException(status_code=400, message="표정 분석 점수 계산에 실패했습니다.") # 계산 실패시 예외 처리
 
+                smile_ratio = round(smiling_frames / total_frames, 4)
+                blinks_per_minute = (blink_count / duration_seconds) * 60
+
                 # 자세 분석
                 if pose_results.pose_landmarks:
                     shoulder_diff, head_rotation = calculate_pose_calibration(pose_results.pose_landmarks, img_h, img_w)
@@ -248,14 +253,13 @@ class AnswerService:
 
             cap.release()
 
-            smile_ratio = round(smiling_frames / total_frames, 4)
 
             # 분석 결과 저장
             update_data = {
                 "smile_ratio": smile_ratio,
                 "gaze_down_count": gaze_down_count,
                 "gaze_points": gaze_points,
-                "blink_count": blink_count,
+                "blinks_per_minute": blinks_per_minute,
                 "shoulder_tilt_count": shoulder_tilt_count,
                 "turn_left_count": turn_left_count,
                 "turn_right_count": turn_right_count,
@@ -281,7 +285,7 @@ class AnswerService:
                 smileRatio=updated_answer.smile_ratio,
                 gazeDownCount=updated_answer.gaze_down_count,
                 gazePoints=updated_answer.gaze_points,
-                blinkCount=blink_count,
+                blinksPerMinute=blinks_per_minute,
                 shoulderTiltCount=updated_answer.shoulder_tilt_count,
                 turnLeftCount=updated_answer.turn_left_count,
                 turnRightCount=updated_answer.turn_right_count,
