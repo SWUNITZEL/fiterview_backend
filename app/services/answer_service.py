@@ -136,6 +136,7 @@ class AnswerService:
             gaze_points = []
             blink_count = 0
             blink_threshold = 0.21
+            eye_closed = False
             saved_gaze_x = 0
             saved_gaze_y = 0
 
@@ -172,11 +173,16 @@ class AnswerService:
                         if ear < calibration_data["ear"] * (2/3):
                             gaze_down_frame_count += 1
 
-                        if ear < blink_threshold:
-                            blink_count += 1
-
-                        else :
+                        else:
                             gaze_down_frame_count = 0
+
+                        # 눈 깜짝임 측정
+                        if ear < blink_threshold:
+                            if not eye_closed:
+                                eye_closed = True
+                                blink_count += 1
+                        else:
+                            eye_closed = False
 
                         # 10프레임 이상 시선이 아래를 향하면 gaze_down_count 추가
                         if (gaze_down_frame_count > 10):
