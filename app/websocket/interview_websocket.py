@@ -74,10 +74,10 @@ async def websocket_interview(websocket: WebSocket, interview_id: str):
                 else:
                     speaking_speed = 0
 
-                # 평균 데시벨 계산
+                # 평균 톤 계산
                 pitch_mean = calculate_pitch_mean(temp_path)
                 if pitch_mean is None:
-                    websocket.send_text("데시벨 계산 중 오류 발생")
+                    websocket.send_text("톤 계산 중 오류 발생")
 
                 # 답변 저장
                 answer = Answer(
