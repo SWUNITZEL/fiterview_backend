@@ -127,8 +127,6 @@ class AnswerService:
             gaze_down_frame_count = 0
             smiling_frames = 0
             total_frames = 0  # 영상 총 프레 수
-            fps = cap.get(cv2.CAP_PROP_FPS) # Frame Per Second
-            duration_seconds = total_frames / fps # 전체 영상 길이 (초 단위)
             gaze_frame_index = 0
             gaze_sampling_rate = 5
             gaze_points = []
@@ -218,6 +216,10 @@ class AnswerService:
                             raise AppException(status_code=400, message="표정 분석 점수 계산에 실패했습니다.") # 계산 실패시 예외 처리
 
                 smile_ratio = round(smiling_frames / total_frames, 4)
+
+                # 분당 눈 깜빡임 수
+                fps = cap.get(cv2.CAP_PROP_FPS)  # Frame Per Second
+                duration_seconds = total_frames / fps  # 전체 영상 길이 (초 단위)
                 blinks_per_minute = (blink_count / duration_seconds) * 60
 
                 # 자세 분석

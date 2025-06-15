@@ -16,7 +16,6 @@ from app.services.stt_service import SttService
 
 repo = QuestionRepository()
 answer_repo = AnswerRepository()
-answer_service = AnswerService()
 
 async def websocket_interview(websocket: WebSocket, interview_id: str):
     await websocket.accept()
@@ -66,7 +65,7 @@ async def websocket_interview(websocket: WebSocket, interview_id: str):
                 if sentence is None:
                     websocket.send_text("텍스트를 추출할 수 없습니다.")
 
-                word_list, hesitant_list, score = answer_service.analysis_answer(sentence)
+                word_list, hesitant_list, score = await AnswerService.analysis_answer(sentence)
 
                 # 속도 계산
                 audio = AudioSegment.from_file(temp_path)
