@@ -21,7 +21,7 @@ class Answer(BaseModel):
     video_url: Optional[str] = None
     speaking_speed: Optional[float] = None
     pitch_mean: Optional[float] = None
-    frequently_used_words: List[Union[str, int]] = None
+    frequently_used_words: List[Tuple[str, int]] = None
     hesitant_list: List[str] = None
     hesitant_score: int = None
     created_at: Optional[datetime] = None
