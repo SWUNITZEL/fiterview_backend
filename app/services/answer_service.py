@@ -33,17 +33,13 @@ class AnswerService:
     okt = Okt()
 
     # 답변분석 메서드
-    async def analysis_answer( answer_id: str, answer: str):
+    async def analysis_answer(answer: str):
         # 형태소 분석
         pos_list = AnswerService.extract_pos(answer)
         # 자주 사용된 단어
         word_list = AnswerService.extract_word(pos_list)
         # 말끝을 흐리는 표현
         hesitant_list, score = AnswerService.extract_predicates(pos_list)
-
-
-        # await AnswerService.answer_repo.update_answer(answer_id,
-        #                                               {"lexical_analysis": word_list, "hesitant_list": hesitant_list, "endings_score": score})
 
         return word_list, hesitant_list, score
 
