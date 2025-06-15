@@ -12,7 +12,7 @@ class OCRService:
 
     CLOVA_OCR_URL = settings.CLOVA_OCR_URL
     CLOVA_SECRET_KEY =settings.CLOVA_OCR_SECRET_KEY
-    MAX_CONCURRENT_REQUESTS = 5
+    MAX_CONCURRENT_REQUESTS = 3
 
     HEADERS = {
         "X-OCR-SECRET": CLOVA_SECRET_KEY
@@ -134,18 +134,26 @@ class OCRService:
 
     # ocr 전송
     async def process_pdf_ocr(self, pdf_bytes: bytes):
-        images = convert_from_bytes(pdf_bytes, dpi=300)
-        results = []
 
-        for i in range(0, len(images), self.MAX_CONCURRENT_REQUESTS):
-            tasks = []
-            for j, img in enumerate(images[i:i + self.MAX_CONCURRENT_REQUESTS]):
+        images = convert_from_bytes(pdf_bytes, dpi=300, use_cropbox=False, strict=False)
+        semaphore = asyncio.Semaphore(self.MAX_CONCURRENT_REQUESTS)
+
+        async def limited_ocr_request(img_bytes, page_number):
+            async with semaphore:
+                return await self.send_ocr_request(img_bytes, page_number)
+
+        tasks = []
+        for idx, img in enumerate(images):
+            img_byte_arr = None
+            try:
                 img_byte_arr = BytesIO()
                 img.save(img_byte_arr, format='JPEG')
                 img_byte_arr.seek(0)
-                tasks.append(self.send_ocr_request(img_byte_arr.getvalue(), i + j + 1))
+                tasks.append(limited_ocr_request(img_byte_arr.getvalue(), idx + 1))
+            finally:
+                img.close()
+                del img
+                img_byte_arr.close()
 
-            batch_result = await asyncio.gather(*tasks)
-            results.extend(batch_result)
-
+        results = await asyncio.gather(*tasks)
         return results
