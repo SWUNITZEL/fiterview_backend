@@ -1,4 +1,4 @@
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Union
 
 from pydantic import BaseModel
 from datetime import datetime
@@ -7,7 +7,6 @@ class Answer(BaseModel):
     id: Optional[str] = None
     interview_id: Optional[str] = None
     question_id: Optional[str] = None
-    keyword: Optional[List[str]] = None
     answer: Optional[str] = None
     summary: Optional[str] = None
     aiAnalysis_comment: Optional[str] = None
@@ -22,5 +21,8 @@ class Answer(BaseModel):
     video_url: Optional[str] = None
     speaking_speed: Optional[float] = None
     pitch_mean: Optional[float] = None
+    frequently_used_words: List[Union[str, int]] = None
+    hesitant_list: List[str] = None
+    hesitant_score: int = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
