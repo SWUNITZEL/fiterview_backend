@@ -1,10 +1,11 @@
 from typing import Optional, List, Tuple, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
+from bson import ObjectId
 
 class Answer(BaseModel):
-    id: Optional[str] = None
+    id: ObjectId = Field(..., alias="_id")
     interview_id: Optional[str] = None
     question_id: Optional[str] = None
     answer: Optional[str] = None
@@ -26,3 +27,9 @@ class Answer(BaseModel):
     hesitant_score: int = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+
+    model_config = {
+        "populate_by_name": True,
+        "json_encoders": {ObjectId: str},
+        "arbitrary_types_allowed": True,
+    }
