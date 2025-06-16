@@ -37,6 +37,5 @@ class AnswerRepository:
             "question_id": question_id
         })
         if doc:
-            doc["id"] = str(doc["_id"])
             return Answer(**doc)
         return None
