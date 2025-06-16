@@ -57,7 +57,7 @@ class PersonaQuestionService:
 
 아래는 한 수험생의 자기소개서 또는 생활기록부입니다.
 
-아래 형식에 따라 총 10개의 질문을 생성하세요.  
+아래 형식에 따라 총 4개의 질문을 생성하세요.  
 질문은 지원 전공 '{major}'과 지원 대학 '{university}' 정보를 반영하며, 문서 내용을 기반으로 면접관의 성격도 드러나야 합니다.
 
 [질문 구성]
@@ -65,10 +65,8 @@ class PersonaQuestionService:
 2. 대학 지원 동기  
 3. 전공 지원 동기  
 4. 장단점  
-5~9. 경험·가치관·활동 등 기반 심화질문  
-10. 마지막 한마디 요청
 
-질문은 오직 10개만 생성하세요. 인사말이나 마무리 멘트는 제외합니다.
+질문은 오직 4개만 생성하세요. 인사말이나 마무리 멘트는 제외합니다.
 
 [문서 내용]
 {document_text}
@@ -84,7 +82,7 @@ class PersonaQuestionService:
         question_lines = [line.strip() for line in raw_text.split("\n") if line.strip()]
         questions: List[QuestionOutput] = []
 
-        for idx, text in enumerate(question_lines):
+        for idx, text in enumerate(question_lines[:4]):
             index = idx + 1
 
             questions.append(QuestionOutput(
