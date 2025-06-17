@@ -194,13 +194,17 @@ Step 3. 개선된 답변:
                     temperature=0.4
                 ).choices[0].message.content.strip()
 
+                video_url = answer.get("video_url")
+                video_paths = [video_url] if video_url else []
+
                 report_items.append(QuestionReport(
                     question=question,
                     intent=intent,
                     answerText=answer_text,
                     evaluation=evaluation_titles,
                     goodExample=good_example_response,
-                    summary=summary
+                    summary=summary,
+                    videos=video_paths
                 ))
 
                 # 저장
@@ -214,7 +218,8 @@ Step 3. 개선된 답변:
                     "evaluation": evaluation_titles,
                     "goodExample": good_example_response,
                     "summary": summary,
-                    "createdAt": datetime.utcnow()
+                    "createdAt": datetime.utcnow(),
+                    "videos": video_paths,
                 })
 
         return ReportResponse(
