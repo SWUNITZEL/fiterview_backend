@@ -63,6 +63,7 @@ async def websocket_interview(websocket: WebSocket, interview_id: str):
                 # STT 처리
                 sentence = await SttService().req_upload(temp_path, completion='sync')
                 if sentence is None:
+                    print("텍스트를 추출할 수 없습니다.")
                     websocket.send_text("텍스트를 추출할 수 없습니다.")
 
                 word_list, hesitant_list, score = await AnswerService.analysis_answer(sentence)
@@ -95,6 +96,8 @@ async def websocket_interview(websocket: WebSocket, interview_id: str):
                     created_at=datetime.datetime.utcnow()
                 )
                 await answer_repo.insert_document(answer)
+
+                await websocket.send_text(json.dumps({"question_text": "done"}))
             finally:
                 # 파일 삭제
                 os.remove(temp_path)
