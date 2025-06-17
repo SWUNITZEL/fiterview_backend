@@ -113,6 +113,10 @@ class AnswerService:
         # answer 찾기
         answer = await AnswerService.answer_repo.get_by_interview_id_and_question_id(interview_id, question_id)
 
+        if answer is None:
+            print(f"답변을 찾을 수 없습니다. {interview_id}, {question_id}")
+            raise AppException(status_code=400, message=f"답변을 찾을 수 없습니다. {interview_id}, {question_id}")
+
         # 영상 s3에 업로드
         video_url = await S3Service.upload_video_file_to_s3(temp_file_path, interview_id, answer.id)
 

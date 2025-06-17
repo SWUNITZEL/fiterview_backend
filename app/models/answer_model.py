@@ -5,7 +5,7 @@ from datetime import datetime
 from bson import ObjectId
 
 class Answer(BaseModel):
-    id: ObjectId = Field(..., alias="_id")
+    id: Optional[ObjectId] = Field(default=None, alias="_id")
     interview_id: Optional[str] = None
     question_id: Optional[str] = None
     answer: Optional[str] = None
