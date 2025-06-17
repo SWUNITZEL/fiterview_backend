@@ -104,6 +104,13 @@ class PersonaQuestionService:
         if interview is None:
             raise AppException(status_code=404, message="인터뷰를 찾을 수 없습니다.")
 
+        # 기존 질문 존재 여부 확인
+        existing_questions = await PersonaQuestionService.question_repo.get_questions_by_interview_id(interview_id)
+        if existing_questions:
+            return CreatePersonaQuestionResponse(
+                questions=existing_questions
+            )
+
         combine_id = interview["combine_id"]
         combine = await PersonaQuestionService.combine_repo.find_by_id(combine_id)
         if combine is None:
