@@ -58,6 +58,7 @@ jobs:
               -e CLOVA_OCR_URL="${{ secrets.CLOVA_OCR_URL }}" \
               -e CLOVA_OCR_SECRET_KEY="${{ secrets.CLOVA_OCR_SECRET_KEY }}" \
               -e JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}" \
+              -e JWT_SOCKET_SECRET_KEY="${{ secrets.JWT_SOCKET_SECRET_KEY }}" \
               -e AWS_ACCESS_KEY="${{ secrets.AWS_ACCESS_KEY }}" \
               -e AWS_SECRET_KEY="${{ secrets.AWS_SECRET_KEY }}" \
               -e S3_BUCKET_NAME="${{ secrets.S3_BUCKET_NAME }}" \

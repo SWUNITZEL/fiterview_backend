@@ -12,7 +12,9 @@ class Settings(BaseSettings):
 
     CLOVA_OCR_URL: str
     CLOVA_OCR_SECRET_KEY: str
+
     JWT_SECRET_KEY: str
+    JWT_SOCKET_SECRET_KEY: str
 
     AWS_ACCESS_KEY: str
     AWS_SECRET_KEY: str
