@@ -1,15 +1,20 @@
+from typing import Annotated
+
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.websockets import WebSocket
 
 from app.core.exceptions.base import AppException
 from app.core.exceptions.handlers import app_exception_handler
 from app.core.response import CommonResponse
+from app.models.user_model import User
 from app.routers import (document_router, answer_router, test_router, user_router, interview_router,
                          persona_question_router, report_router)
 from app.websocket.interview_websocket import websocket_interview
+from app.services.auth_service import AuthService
 
+auth_service = AuthService()
 app = FastAPI()
 
 # 예외 핸들러 등록
@@ -38,6 +43,7 @@ app.add_middleware(
 # WebSocket
 @app.websocket("/interview/{interview_id}")
 async def websocket_route(websocket: WebSocket, interview_id: str):
+    await auth_service.verify_socket_token(websocket.query_params.get("socket_token"))
     await websocket_interview(websocket, interview_id)
 
 # 서버 실행 확인용
