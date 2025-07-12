@@ -48,59 +48,63 @@ async def websocket_interview(websocket: WebSocket, interview_id: str):
                         hasFollowUp=True
                     ).json())
 
-            # 오디오 수신
-            audio_data = await websocket.receive_bytes()
+            sentence = None
+            while sentence is None:
 
-            # 꼬리 질문 생성
-                # 질문 생성 후 db 저장
-                # questions 질문 리스트에 질문 모델 추가.
+                # 오디오 수신
+                audio_data = await websocket.receive_bytes()
 
-            # 임시 파일로 저장
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_file:
-                temp_file.write(audio_data)
-                temp_path = temp_file.name
-            try:
-                # STT 처리
-                sentence = await SttService().req_upload(temp_path, completion='sync')
-                if sentence is None:
-                    print("텍스트를 추출할 수 없습니다.")
-                    websocket.send_text("텍스트를 추출할 수 없습니다.")
+                # 꼬리 질문 생성
+                    # 질문 생성 후 db 저장
+                    # questions 질문 리스트에 질문 모델 추가.
 
-                word_list, hesitant_list, score = await AnswerService.analysis_answer(sentence)
+                # 임시 파일로 저장
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_file:
+                    temp_file.write(audio_data)
+                    temp_path = temp_file.name
+                try:
+                    # STT 처리
+                    sentence = await SttService().req_upload(temp_path, completion='sync')
+                    if sentence is None:
+                        print("텍스트를 추출할 수 없습니다.")
+                        await websocket.send_text({"question_text": "텍스트를 추출할 수 없습니다."})
+                        continue  # 오디오 다시 받기
 
-                # 속도 계산
-                audio = AudioSegment.from_file(temp_path)
-                duration_sec = len(audio) / 1000.0  # ms → sec
+                    word_list, hesitant_list, score = await AnswerService.analysis_answer(sentence)
 
-                char_count = len(sentence.replace(" ", ""))  # 공백 제외 문자 수
-                if duration_sec > 0:
-                    speaking_speed = char_count / duration_sec  # 문자/초
-                else:
-                    speaking_speed = 0
+                    # 속도 계산
+                    audio = AudioSegment.from_file(temp_path)
+                    duration_sec = len(audio) / 1000.0  # ms → sec
 
-                # 평균 톤 계산
-                pitch_mean = calculate_pitch_mean(temp_path)
-                if pitch_mean is None:
-                    websocket.send_text("톤 계산 중 오류 발생")
+                    char_count = len(sentence.replace(" ", ""))  # 공백 제외 문자 수
+                    if duration_sec > 0:
+                        speaking_speed = char_count / duration_sec  # 문자/초
+                    else:
+                        speaking_speed = 0
 
-                # 답변 저장
-                answer = Answer(
-                    interview_id = interview_id,
-                    question_id = question.id,
-                    answer = sentence,
-                    speaking_speed = speaking_speed,
-                    pitch_mean = pitch_mean,
-                    frequently_used_words=word_list,
-                    hesitant_list = hesitant_list,
-                    hesitant_score=score,
-                    created_at=datetime.datetime.utcnow()
-                )
-                await answer_repo.insert_document(answer)
+                    # 평균 톤 계산
+                    pitch_mean = calculate_pitch_mean(temp_path)
+                    if pitch_mean is None:
+                        websocket.send_text("톤 계산 중 오류 발생")
 
-                await websocket.send_text(json.dumps({"question_text": "done"}))
-            finally:
-                # 파일 삭제
-                os.remove(temp_path)
+                    # 답변 저장
+                    answer = Answer(
+                        interview_id = interview_id,
+                        question_id = question.id,
+                        answer = sentence,
+                        speaking_speed = speaking_speed,
+                        pitch_mean = pitch_mean,
+                        frequently_used_words=word_list,
+                        hesitant_list = hesitant_list,
+                        hesitant_score=score,
+                        created_at=datetime.datetime.utcnow()
+                    )
+                    await answer_repo.insert_document(answer)
+
+                    await websocket.send_text(json.dumps({"question_text": "done"}))
+                finally:
+                    # 파일 삭제
+                    os.remove(temp_path)
 
         # 종료 멘트
         await websocket.send_text(json.dumps({"question_text": "수고하셨습니다"}))
