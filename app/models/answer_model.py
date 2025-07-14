@@ -15,7 +15,7 @@ class Answer(BaseModel):
     blind_rule_adherence: Optional[str] = None
     smile_ratio: Optional[float] = None
     gaze_down_count: Optional[int] = None
-    gaze_points: Optional[List[Tuple[int, int]]] = None
+    gaze_points: Optional[List[Tuple[int, int, Optional[datetime]]]] = None
     shoulder_tilt_count: Optional[int] = None
     turn_left_count: Optional[int] = None
     turn_right_count: Optional[int] = None
