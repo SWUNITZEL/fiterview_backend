@@ -3,7 +3,6 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jwt import ExpiredSignatureError, InvalidTokenError
 from typing import Annotated
 
-from websocket import WebSocket
 
 from app.core.exceptions.base import AppException
 from app.core.security import decode_token, decode_socket_token, create_socket_token
