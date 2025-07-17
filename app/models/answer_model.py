@@ -4,6 +4,11 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 from bson import ObjectId
 
+class GazePoint(BaseModel):
+    x: int
+    y: int
+    time: datetime
+
 class Answer(BaseModel):
     id: Optional[ObjectId] = Field(default=None, alias="_id")
     interview_id: Optional[str] = None
@@ -15,7 +20,7 @@ class Answer(BaseModel):
     blind_rule_adherence: Optional[str] = None
     smile_ratio: Optional[float] = None
     gaze_down_count: Optional[int] = None
-    gaze_points: Optional[List[Tuple[int, int, Optional[datetime]]]] = None
+    gaze_points: Optional[List[GazePoint]] = None
     shoulder_tilt_count: Optional[int] = None
     turn_left_count: Optional[int] = None
     turn_right_count: Optional[int] = None
