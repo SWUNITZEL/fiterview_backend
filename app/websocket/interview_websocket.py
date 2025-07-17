@@ -67,7 +67,7 @@ async def websocket_interview(websocket: WebSocket, interview_id: str):
                     sentence = await SttService().req_upload(temp_path, completion='sync')
                     if sentence is None:
                         print("텍스트를 추출할 수 없습니다.")
-                        await websocket.send_text({"question_text": "텍스트를 추출할 수 없습니다."})
+                        await websocket.send_text(json.dumps({"question_text": "텍스트를 추출할 수 없습니다."}))
                         continue  # 오디오 다시 받기
 
                     word_list, hesitant_list, score = await AnswerService.analysis_answer(sentence)
