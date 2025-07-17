@@ -209,7 +209,9 @@ class AnswerService:
                                 saved_gaze_y = 0
                             elif gaze_y >= img_h:
                                 saved_gaze_y = 100
-                            gaze_points.append((saved_gaze_x, saved_gaze_y, datetime.utcnow()))
+                            gaze_points.append({"x": saved_gaze_x,
+                                                "y": saved_gaze_y,
+                                                "time": datetime.utcnow()})
 
                         # 표정 분석
                         smile_score = calculate_smile_points(face_landmarks)
