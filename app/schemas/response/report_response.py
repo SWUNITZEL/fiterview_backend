@@ -9,6 +9,7 @@ class QuestionReport(BaseModel):
     goodExample: str  # 개선된 모범 답변
     summary: str  # 답변 총평
     followupQuestions: Optional[List[str]] = None
+    videos: List[str] = []
 
 class ReportResponse(BaseModel):
     report: List[QuestionReport]

@@ -7,6 +7,7 @@ from app.schemas.response.report_response import ReportResponse, QuestionReport
 from app.core.database import database
 from fastapi import HTTPException
 from app.common.extract import extract_improved_answer
+from app.services.answer_service import AnswerService
 
 client = openai.OpenAI(api_key=settings.GPT_API_KEY)
 
@@ -178,15 +179,34 @@ Step 3. 개선된 답변:
 
                 good_example_response = extract_improved_answer(good_example_response)
 
+                # 답변 세부 분석: 자주 쓰는 단어, 말끝 흐림 표현, 흐림 비율
+                word_list, hesitant_list, hesitant_score = await AnswerService.analysis_answer(answer_text)
+                top_words = ', '.join([f"{w}({c})" for w, c in word_list[:3]]) if word_list else '없음'
+                hesitant_expressions = ', '.join(hesitant_list[:3]) if hesitant_list else '없음'
+
                 # GPT 호출: 답변 요약 (summary)
                 summary_prompt = f"""
-[답변 요약 및 평가]
-다음은 수험자의 답변입니다. 답변을 간결하게 요약하고, 평가자의 시선에서 전반적인 인상을 함께 서술해 주세요.
-- 답변의 핵심 내용을 1~2문장으로 요약해 주세요.
-- 논리성, 구체성, 태도, 진정성 등을 종합적으로 고려해 평가자의 총평을 자연스럽게 작성해 주세요.
-- 모든 내용을 3~4줄 이내의 자연스럽고 부드러운 문장으로 작성해 주세요.
-[원문]
+                
+당신은 대학 입시 면접관입니다. 아래 정보를 바탕으로 수험자의 답변을 분석하고, 총평을 3~4줄 이내로 작성하세요.
+
+[사용자 전공]
+- {major}
+
+[답변 요약 요소]
+- 주요 단어: {top_words}
+- 말끝 흐림 표현: {hesitant_expressions}
+- 흐림 비율: {hesitant_score}%
+
+[수험자 답변]
 {answer_text}
+
+요청 사항:
+- 총평 안에 수험자의 답변 내용을 1~2문장으로 요약하고,
+- 이어서 논리성, 태도, 구체성, 표현 방식 등을 반영한 전반적인 평가를 1~2문장으로 작성하세요.
+- 흐림 표현과 흐림 비율이 높을 경우, 전달력이나 자신감이 다소 부족하다는 평가를 반영하세요.
+- 전공과 단어 선택이 일치하거나 설득력 있는 경우, 그 강점을 언급하세요.
+- 총평은 잘한 점과 개선점을 모두 포함하고, 표현이 자연스럽고 일관되게 이어지도록 작성하세요.
+- 평가자 관점에서 작성하며, 총평 외의 설명이나 지시문은 포함하지 마세요.
 """
                 summary = client.chat.completions.create(
                     model="gpt-4o",
@@ -195,8 +215,10 @@ Step 3. 개선된 답변:
                 ).choices[0].message.content.strip()
 
                 video_url = answer.get("video_url")
+                print("video_url:", video_url)
                 video_paths = [video_url] if video_url else []
 
+                print("최종 video_paths:", video_paths)
                 report_items.append(QuestionReport(
                     question=question,
                     intent=intent,
@@ -221,6 +243,7 @@ Step 3. 개선된 답변:
                     "createdAt": datetime.utcnow(),
                     "videos": video_paths,
                 })
+        print("전체 보고서 반환 결과:", report_items)
 
         return ReportResponse(
             report=report_items
