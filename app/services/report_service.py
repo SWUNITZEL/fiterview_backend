@@ -107,7 +107,8 @@ Step 3. 개선된 답변:
                     answerText=report["answerText"],
                     evaluation=report["evaluation"],
                     goodExample=report["goodExample"],
-                    summary=report["summary"]
+                    summary=report["summary"],
+                    videos=report.get("videos", [])
                 ))
         else:
             # 해당 면접의 모든 질문과 답변 조회
