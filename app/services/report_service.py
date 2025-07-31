@@ -8,6 +8,7 @@ from app.core.database import database
 from fastapi import HTTPException
 from app.common.extract import extract_improved_answer
 from app.services.answer_service import AnswerService
+from app.common.s3_utils import generate_presigned_url
 
 client = openai.OpenAI(api_key=settings.GPT_API_KEY)
 
@@ -218,6 +219,14 @@ Step 3. 개선된 답변:
                 ).choices[0].message.content.strip()
 
                 video_url = answer.get("video_url") if isinstance(answer, dict) else getattr(answer, "video_url", None)
+
+                # s3:// 형식이면 presigned URL로 변환
+                if video_url and video_url.startswith("s3://"):
+                    _, bucket_and_key = video_url.split("s3://")
+                    bucket, *key_parts = bucket_and_key.split("/")
+                    key = "/".join(key_parts)
+                    video_url = generate_presigned_url(bucket, key)
+
                 video_paths = [video_url] if video_url else []
                 print("최종 video_paths:", video_paths)
                 report_items.append(QuestionReport(
