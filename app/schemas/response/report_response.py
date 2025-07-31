@@ -13,5 +13,8 @@ class QuestionReport(BaseModel):
     followupQuestions: Optional[List[str]] = None
     videos: List[str] = []
 
+    class Config:
+        extra = "allow"  # 예상 못한 필드도 통과. 이미 db 저장된 url 불러오기 위해 추가
+
 class ReportResponse(BaseModel):
     report: List[QuestionReport]
