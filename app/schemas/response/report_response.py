@@ -2,7 +2,6 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 class QuestionReport(BaseModel):
-    interview_id: str
     answer_id: str
     question_id: str
     question: str
