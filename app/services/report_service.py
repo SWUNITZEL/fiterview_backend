@@ -216,7 +216,8 @@ Step 3. 개선된 답변:
                     temperature=0.4
                 ).choices[0].message.content.strip()
 
-                video_paths = answer.get("videos") or ([answer.get("video_url")] if answer.get("video_url") else [])
+                video_url = answer.get("video_url") if isinstance(answer, dict) else getattr(answer, "video_url", None)
+                video_paths = [video_url] if video_url else []
                 print("최종 video_paths:", video_paths)
                 report_items.append(QuestionReport(
                     question_id=str(question_doc["_id"]),
