@@ -220,6 +220,8 @@ Step 3. 개선된 답변:
 
                 print("최종 video_paths:", video_paths)
                 report_items.append(QuestionReport(
+                    questionId=str(question_doc["_id"]),
+                    answerId=str(answer["_id"]),
                     question=question,
                     intent=intent,
                     answerText=answer_text,
