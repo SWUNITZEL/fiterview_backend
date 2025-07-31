@@ -233,9 +233,9 @@ Step 3. 개선된 답변:
 
                 # 저장
                 await database["question_reports"].insert_one({
-                    "question_id": interview_id,
-                    "answer_id": str(question_doc["_id"]),
-                    "answerId": str(answer["_id"]),
+                    "interviewId": interview_id,
+                    "question_id": str(question_doc["_id"]),
+                    "answer_id": str(answer["_id"]),
                     "question": question,
                     "intent": intent,
                     "answerText": answer_text,
