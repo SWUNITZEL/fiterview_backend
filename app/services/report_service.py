@@ -100,6 +100,8 @@ Step 3. 개선된 답변:
             # 이미 생성된 보고서가 있으면 그것을 반환
             for report in existing_reports:
                 report_items.append(QuestionReport(
+                    question_id=report["question_id"],
+                    answer_id=report["answer_id"],
                     question=report["question"],
                     intent=report["intent"],
                     answerText=report["answerText"],
