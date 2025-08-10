@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 
@@ -9,18 +10,19 @@ class Settings(BaseSettings):
     MONGO_DB_URL: str
     CLOVA_SPEECH_SECRET_KEY: str
     CLOVA_SPEECH_URL: str
-
     CLOVA_OCR_URL: str
     CLOVA_OCR_SECRET_KEY: str
-
     JWT_SECRET_KEY: str
     JWT_SOCKET_SECRET_KEY: str
 
-    AWS_ACCESS_KEY: str
-    AWS_SECRET_KEY: str
+    # 표준 AWS 변수
+    AWS_ACCESS_KEY_ID: str
+    AWS_SECRET_ACCESS_KEY: str
+    AWS_DEFAULT_REGION: str
+
     S3_BUCKET_NAME: str
     GPT_API_KEY: str
-    AWS_REGION: str
+
 
 settings = Settings()
 
