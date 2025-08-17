@@ -6,7 +6,7 @@ def generate_presigned_url(bucket: str, key: str, expires_in: int = 60 * 60 * 24
     S3 객체에 접근할 수 있는 presigned URL 생성
     - bucket: S3 버킷 이름
     - key: S3 객체 키 (폴더 포함 경로)
-    - expires_in: URL 만료 시간(초)  # 7일(604800초)
+    - expires_in: URL 만료 시간(초) : 최대 7일
     """
     s3 = get_s3_client()
 
