@@ -46,16 +46,8 @@ jobs:
           timeout: 1800
           script: |
             cd /home/ubuntu/fastapi-app
-            
-            # 기존 컨테이너 중단 및 제거
-            sudo docker-compose down || true
-            
-            # Docker Hub에 로그인
+            sudo docker compose down || true
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | sudo docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-            
-            # 이미지 정리
             sudo docker image prune -f
-            
-            # 최신 이미지 pull 및 배포
-            sudo docker-compose pull web worker
-            sudo docker-compose up -d --build --force-recreate
+            sudo docker compose pull web worker
+            sudo docker compose up -d --build --force-recreate
