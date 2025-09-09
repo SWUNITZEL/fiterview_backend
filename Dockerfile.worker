@@ -1,0 +1,27 @@
+FROM python:3.12-bookworm
+
+WORKDIR /code
+
+COPY ./requirements.txt /code/requirements.txt
+COPY ./app /code/app
+
+# JAVA 설치 추가
+RUN apt-get update && apt-get install -y \
+    wget \
+    curl \
+    gcc \
+    poppler-utils \
+    libgl1-mesa-glx \
+    openjdk-17-jdk \
+    && apt-get clean
+
+# JAVA 경로 설정
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
+Python 종속성 설치
+RUN pip install --no-cache-dir -r /code/requirements.txt
+RUN pip install requests celery
+
+Celery 워커 실행
+CMD ["celery", "-A", "app.core.celery_app.celery_app", "worker", "-P", "solo", "--loglevel=info"]

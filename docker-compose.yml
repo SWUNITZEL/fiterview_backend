@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/code/app
+    depends_on:
+      - redis
+    environment:
+      # 웹 서버에 필요한 환경 변수
+      - MONGO_DB_URL=${MONGO_DB_URL}
+      - MONGO_DB_NAME=${MONGO_DB_NAME}
+      - CLOVA_SPEECH_SECRET_KEY=${CLOVA_SPEECH_SECRET_KEY}
+      - CLOVA_SPEECH_URL=${CLOVA_SPEECH_URL}
+      - CLOVA_OCR_URL=${CLOVA_OCR_URL}
+      - CLOVA_OCR_SECRET_KEY=${CLOVA_OCR_SECRET_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_SOCKET_SECRET_KEY=${JWT_SOCKET_SECRET_KEY}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+      - GPT_API_KEY=${GPT_API_KEY}
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    volumes:
+      - ./app:/code/app
+    depends_on:
+      - redis
+    environment:
+      # 워커에 필요한 환경 변수
+      - MONGO_DB_URL=${MONGO_DB_URL}
+      - MONGO_DB_NAME=${MONGO_DB_NAME}
+      - CLOVA_SPEECH_SECRET_KEY=${CLOVA_SPEECH_SECRET_KEY}
+      - CLOVA_SPEECH_URL=${CLOVA_SPEECH_URL}
+      - CLOVA_OCR_URL=${CLOVA_OCR_URL}
+      - CLOVA_OCR_SECRET_KEY=${CLOVA_OCR_SECRET_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_SOCKET_SECRET_KEY=${JWT_SOCKET_SECRET_KEY}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+      - GPT_API_KEY=${GPT_API_KEY}
+
+  redis:
+    image: redis:alpine
+    expose:
+      - "6379"
