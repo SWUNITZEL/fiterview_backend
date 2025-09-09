@@ -44,6 +44,8 @@ jobs:
           username: ${{ env.EC2_SSH_USER }}
           key: ${{ env.PRIVATE_KEY }}
           script: |
+            cd /home/ubuntu/fastapi-app
+            
             # 기존 컨테이너 중단 및 제거
             sudo docker-compose down || true
             
