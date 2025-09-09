@@ -43,6 +43,7 @@ jobs:
           host: ${{ env.EC2_HOST }}
           username: ${{ env.EC2_SSH_USER }}
           key: ${{ env.PRIVATE_KEY }}
+          timeout: 1800
           script: |
             cd /home/ubuntu/fastapi-app
             
