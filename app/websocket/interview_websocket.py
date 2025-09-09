@@ -2,6 +2,7 @@ import os
 import tempfile
 import json
 import datetime
+import asyncio
 
 from pydub import AudioSegment
 from fastapi import WebSocket, WebSocketDisconnect
@@ -13,6 +14,7 @@ from app.repository.question_repository import QuestionRepository
 from app.schemas.response.interview_question_response import InterviewQuestionResponse
 from app.services.answer_service import AnswerService
 from app.services.stt_service import SttService
+from app.services.job_manager import job_manager
 
 repo = QuestionRepository()
 answer_repo = AnswerRepository()
@@ -99,6 +101,7 @@ async def websocket_interview(websocket: WebSocket, interview_id: str):
                         hesitant_score=score,
                         created_at=datetime.datetime.utcnow()
                     )
+                    print("답변 저장 완료")
                     await answer_repo.insert_document(answer)
 
                     await websocket.send_text(json.dumps({"question_text": "done"}))
@@ -106,8 +109,58 @@ async def websocket_interview(websocket: WebSocket, interview_id: str):
                     # 파일 삭제
                     os.remove(temp_path)
 
-        # 종료 멘트
-        await websocket.send_text(json.dumps({"question_text": "수고하셨습니다"}))
+
+        # 모든 질문 완료 후 영상 분석 작업 상태 확인 및 응답
+        is_completed = await check_video_analysis_completion(websocket, interview_id)
+
+        if is_completed:
+            print("모든 영상 분석이 완료되었습니다.")
+            # 종료 멘트
+            await websocket.send_text(json.dumps({"question_text": "수고하셨습니다"}))
+            
+            # 작업 데이터 정리
+            job_manager.cleanup_jobs(interview_id)
 
     except WebSocketDisconnect:
         print("WebSocket 연결 종료")
+
+# 영상 분석 작업 완료 상태를 확인하고 완료 여부를 반환
+async def check_video_analysis_completion(websocket: WebSocket, interview_id: str) -> bool:
+    try:
+        max_wait_time = 300
+        check_interval = 5
+        elapsed_time = 0
+
+        while elapsed_time < max_wait_time:
+            jobs = job_manager.get_interview_jobs(interview_id)
+            
+            # 모든 작업이 완료되었는지 확인
+            if job_manager.check_all_jobs_completed(interview_id):
+                # 모든 작업 완료 시 True 반환
+                return True
+            
+            await asyncio.sleep(check_interval)
+            elapsed_time += check_interval
+            
+            # 진행 상황 알림 (30초마다)
+            if elapsed_time % 30 == 0:
+                jobs = job_manager.get_interview_jobs(interview_id)
+                completed_jobs = [job for job in jobs if job["status"] in ["SUCCESS", "FAILURE"]]
+                completed_count = len(completed_jobs)
+                total_jobs = len(jobs)
+                pending_jobs = [job for job in jobs if job["status"] not in ["SUCCESS", "FAILURE"]]
+                pending_count = len(pending_jobs)
+                
+                await websocket.send_text(json.dumps({
+                    "type": "video_analysis_progress",
+                    "message": f"영상 분석 진행 중... ({completed_count}/{total_jobs}개 완료)",
+                    "pendingJobs": pending_count
+                }))
+        
+        # 최대 대기 시간 초과
+        return False
+            
+    except Exception as e:
+        print(f"영상 분석 완료 확인 중 오류: {e}")
+        # 오류 발생 시 False 반환
+        return False

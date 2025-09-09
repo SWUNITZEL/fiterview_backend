@@ -11,6 +11,8 @@ env:
   EC2_SSH_USER: ubuntu
   PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
   CONTAINER_NAME: fastapi
+  WEB_IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-web
+  WORKER_IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-worker
 
 jobs:
   build-and-push-docker:
@@ -19,14 +21,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build the Docker image
-        run: docker buildx build --platform linux/amd64 -t ${{ env.DOCKER_IMAGE_NAME }}:latest .
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-      - name: Push the Docker image
-        run: docker push ${{ env.DOCKER_IMAGE_NAME }}:latest
+      - name: Build and push web image
+        run: docker buildx build --platform linux/amd64 -t ${{ env.WEB_IMAGE_NAME }}:latest --file ./Dockerfile.web . --push
+
+      - name: Build and push worker image
+        run: docker buildx build --platform linux/amd64 -t ${{ env.WORKER_IMAGE_NAME }}:latest --file ./Dockerfile.worker . --push
 
   deploy-to-ec2:
     needs: build-and-push-docker
@@ -39,29 +44,15 @@ jobs:
           username: ${{ env.EC2_SSH_USER }}
           key: ${{ env.PRIVATE_KEY }}
           script: |
-            CONTAINER_ID=$(sudo docker ps -q --filter "name=${{ env.CONTAINER_NAME }}")
+            # 기존 컨테이너 중단 및 제거
+            sudo docker-compose down || true
             
-            if [ ! -z "$CONTAINER_ID" ]; then
-              sudo docker stop $CONTAINER_ID
-              sudo docker rm $CONTAINER_ID
-            fi
+            # Docker Hub에 로그인
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | sudo docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
             
+            # 이미지 정리
             sudo docker image prune -f
             
-            sudo docker pull ${{ env.DOCKER_IMAGE_NAME }}:latest;
-            
-            sudo docker run -d -p 8000:8000 \
-              -e MONGO_DB_URL="${{ secrets.MONGO_DB_URL }}" \
-              -e MONGO_DB_NAME="${{ secrets.MONGO_DB_NAME }}" \
-              -e CLOVA_SPEECH_SECRET_KEY="${{ secrets.CLOVA_SPEECH_SECRET_KEY }}" \
-              -e CLOVA_SPEECH_URL="${{ secrets.CLOVA_SPEECH_URL }}" \
-              -e CLOVA_OCR_URL="${{ secrets.CLOVA_OCR_URL }}" \
-              -e CLOVA_OCR_SECRET_KEY="${{ secrets.CLOVA_OCR_SECRET_KEY }}" \
-              -e JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}" \
-              -e JWT_SOCKET_SECRET_KEY="${{ secrets.JWT_SOCKET_SECRET_KEY }}" \
-              -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
-              -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-              -e AWS_DEFAULT_REGION="${{ secrets.AWS_REGION }}" \
-              -e S3_BUCKET_NAME="${{ secrets.S3_BUCKET_NAME }}" \
-              -e GPT_API_KEY="${{ secrets.GPT_API_KEY }}" \
-              --name ${{ env.CONTAINER_NAME }} ${{ env.DOCKER_IMAGE_NAME }}:latest
+            # 최신 이미지 pull 및 배포
+            sudo docker-compose pull web worker
+            sudo docker-compose up -d --build --force-recreate

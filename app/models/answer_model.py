@@ -18,6 +18,7 @@ class Answer(BaseModel):
     aiAnalysis_comment: Optional[str] = None
     improved_answer: Optional[str] = None
     blind_rule_adherence: Optional[str] = None
+    blinks_per_minute: Optional[float] = None
     smile_ratio: Optional[float] = None
     gaze_down_count: Optional[int] = None
     gaze_points: Optional[List[GazePoint]] = None
