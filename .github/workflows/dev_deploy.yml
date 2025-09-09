@@ -43,7 +43,7 @@ jobs:
           host: ${{ env.EC2_HOST }}
           username: ${{ env.EC2_SSH_USER }}
           key: ${{ env.PRIVATE_KEY }}
-          timeout: 1800
+          timeout: 30m
           script: |
             cd /home/ubuntu/fastapi-app
             sudo docker compose down || true
