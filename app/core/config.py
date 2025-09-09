@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     S3_BUCKET_NAME: str
     GPT_API_KEY: str
 
+    # Redis 설정
+    REDIS_HOST: str = "localhost"
+    REDIS_PORT: int = 6379
+    REDIS_DB: int = 0
+
 
 settings = Settings()
 
