@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     GPT_API_KEY: str
 
     # Redis 설정
-    REDIS_HOST: str = "localhost"
+    REDIS_HOST: str = "redis"
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
 
