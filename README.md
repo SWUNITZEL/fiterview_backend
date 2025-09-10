@@ -1,3 +1,4 @@
 ## Architecture
 
-![fiterview drawio](https://github.com/user-attachments/assets/6cb34ce4-2004-4382-9196-bb4daefd26c5)
+<img width="900" height="641" alt="fiterview drawio (2)" src="https://github.com/user-attachments/assets/a77b5e16-6c27-459c-ad34-a9058957b2de" />
+
