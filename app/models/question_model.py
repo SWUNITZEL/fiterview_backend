@@ -17,3 +17,4 @@ class Question(BaseModel):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     followupQuestion: Optional[str] = None  # 단일 꼬리질문
+    comment: Optional[str] = None
