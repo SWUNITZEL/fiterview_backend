@@ -59,6 +59,7 @@ class PersonaQuestionService:
             major: str,
             university: str,
             interview_id: str,
+            count : int
     ) -> List[QuestionOutput]:
 
         processed_data = {}
@@ -83,7 +84,9 @@ class PersonaQuestionService:
         questions = PersonaQuestionService.question_gen_agent.generate_questions(
             department=university,
             document=document_text,
-            comment=comment
+            comment=comment,
+            count=count,
+            persona_label=persona_label
         )
 
         # 질문 sort
@@ -120,6 +123,7 @@ class PersonaQuestionService:
             major=combine["department"],
             university=combine["university"],
             interview_id=interview_id,
+            count=combine["question_count"]
         )
 
         # MongoDB에 저장
