@@ -6,7 +6,7 @@ class QuestionGenAgent:
     def __init__(self, prompt_path="app/agent/prompt/question_gen_agent.txt"):
         self.prompt_path = prompt_path
 
-    def generate_questions(self, department: str, document: str, comment: str):
+    def generate_questions(self, department: str, document: str, comment: str, count: int, persona_label: List[str]):
         """
         생활기록부 주요 내용 및 코멘트를 바탕으로 질문 생성
         """
@@ -15,7 +15,9 @@ class QuestionGenAgent:
             self.prompt_path,
             department=department,
             document=document,
-            comment=comment
+            comment=comment,
+            count= count,
+            persona_label=persona_label
         )
 
         system_prompt, user_prompt = prompt.split("---", 1)
