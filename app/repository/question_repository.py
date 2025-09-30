@@ -46,5 +46,22 @@ class QuestionRepository:
             results.append(Question(**doc))
         return results
 
+    async def insert_question(self, question: Question) -> str:
+        """
+        단일 질문을 DB에 저장하고 생성된 ID 반환
+        """
+        doc = question.model_dump()
+        doc["created_at"] = datetime.utcnow()
+        result = await self.collection.insert_one(doc)
+        return str(result.inserted_id)
+
+    async def update_question(self, question_id: str, question: Question) -> bool:
+        """
+        기존 질문 업데이트
+        """
+        doc = question.model_dump()
+        doc["updated_at"] = datetime.utcnow()
+        result = await self.collection.update_one({"_id": ObjectId(question_id)}, {"$set": doc})
+        return result.modified_count > 0
 
 
