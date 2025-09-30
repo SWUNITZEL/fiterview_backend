@@ -157,7 +157,7 @@ class SttService:
         result = json.loads(response.text)
         segments = result.get("segments", [])
         if segments:
-            sentence = segments[0].get("text")
+            sentence = " ".join([seg.get("text", "") for seg in segments])
         else:
             sentence = None
 
