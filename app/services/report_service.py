@@ -130,6 +130,7 @@ Step 3. 개선된 답변:
                         goodExample=report["goodExample"],
                         summary=report["summary"],
                         videos=report.get("videos", []),
+                        questionIndex=report["questionIndex"],
                     )
                 )
             return ReportResponse(report=report_items)
@@ -162,6 +163,7 @@ Step 3. 개선된 답변:
 
             answer_text = answer.get("answer", "")
             major = question_doc.get("major", "일반")
+            question_index = question_doc.get("questionIndex")
 
             # GPT 호출: 질문 의도
             intent_prompt = f"""
@@ -277,6 +279,7 @@ Step 3. 개선된 답변:
                     goodExample=good_example_response,
                     summary=summary,
                     videos=video_paths,
+                    questionIndex=question_index
                 )
             )
 
@@ -294,9 +297,11 @@ Step 3. 개선된 답변:
                     "summary": summary,
                     "createdAt": datetime.utcnow(),
                     "videos": video_paths,
+                    "questionIndex": question_index,
                 }
             )
 
+        report_items.sort(key=lambda r: r.questionIndex)
         return ReportResponse(report=report_items)
 
 
