@@ -6,7 +6,7 @@ class InterviewQuestionResponse(BaseModel):
     question_id: str
     type: str
     total_questions: int
-    question_index: int
+    question_index: float
     question_text: str
     has_follow_up: bool
 

@@ -40,12 +40,13 @@ async def websocket_interview(websocket: WebSocket, interview_id: str):
 
             # 꼬리 질문 생성
             if len(sentence.replace(" ", "")) >= 100:
+                followup_question_index = question.question_index + 0.1,
                 followup_question = await followup_service.generate_followup_questions(sentence, question.question_text)
                 # 꼬리 질문 저장
                 followup_question = Question(
                     interview_id=question.interview_id,
                     question_text=followup_question,
-                    question_index=question.question_index + 0.1,
+                    question_index=followup_question_index,
                     total_questions=question.total_questions,
                     created_at = datetime.datetime.utcnow()
                 )
@@ -65,7 +66,7 @@ async def websocket_interview(websocket: WebSocket, interview_id: str):
                     followup_question = Question(
                         interview_id=question.interview_id,
                         question_text=followup_question,
-                        question_index=question.question_index + 0.1,
+                        question_index=followup_question_index + 0.1,
                         total_questions=question.total_questions,
                         created_at=datetime.datetime.utcnow()
                     )
