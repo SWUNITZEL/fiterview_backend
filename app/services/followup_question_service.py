@@ -1,12 +1,8 @@
-import openai
-from typing import List
-from bson import ObjectId
-from app.core.config import settings
-from app.core.database import database
-from app.schemas.response.followup_question_response import FollowupQuestionResponse
-from app.core.exceptions.custom import InterviewNotFoundException
+from openai import AsyncOpenAI
 
-client = openai.OpenAI(api_key=settings.GPT_API_KEY)
+from app.core.config import settings
+
+client = AsyncOpenAI(api_key=settings.GPT_API_KEY)
 
 class FollowupQuestionService:
     @staticmethod
@@ -40,10 +36,10 @@ class FollowupQuestionService:
 
 반드시 1개의 문장만 출력하고, 다른 설명이나 줄바꿈 없이 질문만 출력해주세요.
 """
-        response = await client.chat.completions.acreate(
+        response = await client.chat.completions.create(
             model="gpt-4o",
             messages=[{"role": "user", "content": followup_prompt}],
-            temperature=0.7
+            temperature=0.7,
         )
 
         followup_text = response.choices[0].message.content.strip()
