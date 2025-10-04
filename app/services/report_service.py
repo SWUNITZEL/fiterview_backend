@@ -184,7 +184,7 @@ class ReportService:
                 good_example_response = ""
 
             # summary 답변 총평
-            doc_agent = DocumentAgent(prompt_path="app/agent/prompt/documnet_agent.txt")
+            doc_agent = DocumentAgent(prompt_path="app/agent/prompt/document_agent.txt")
             doc_processed = doc_agent.generate_document(
                 department=major,
                 document=answer_text
