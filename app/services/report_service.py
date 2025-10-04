@@ -2,20 +2,19 @@ import openai
 from datetime import datetime
 from typing import List
 from bson import ObjectId
-from fastapi import HTTPException
-
 from app.core.config import settings
 from app.schemas.response.report_response import ReportResponse, QuestionReport
 from app.core.database import database
 from app.common.extract import extract_improved_answer
 from app.services.answer_service import AnswerService
 from app.common.s3_utils import generate_presigned_url
+from app.agent.document_agent import DocumentAgent
+from app.agent.ground_truth_agent import GroundTruthAgent
 
 client = openai.OpenAI(api_key=settings.GPT_API_KEY)
 
 # --- 안전 쿼리 헬퍼 ---
 def _interview_filter(iid: str):
-    """interview_id가 snake/camel, str/ObjectId 어떤 형태든 매칭"""
     iid = (str(iid) if iid is not None else "").strip()
     ors = [{"interview_id": iid}, {"interviewId": iid}]
     try:
@@ -65,49 +64,6 @@ EVALUATION_CATEGORIES = {
 
 class ReportService:
     @staticmethod
-    def build_good_example_prompt(question: str, answer: str, major: str) -> str:
-        def get_dynamic_fewshot(prompt_text: str) -> str:
-            if "장단점" in prompt_text or "자신의 장점과 단점" in prompt_text:
-                return """
-[예시]
-질문: 본인의 장점과 단점에 대해 말해주세요.
-답변: 저의 장점은 성실함이고 저의 단점은 한 번 몰입하면 너무 지나칠 때가 있다는 것입니다.
-Step 1. 분석: 흔한 모범답변처럼 보여 차별성이 떨어집니다.
-Step 2. 개선 방향: 구체적인 사례와 그로 인한 결과를 담으면 좋습니다.
-Step 3. 개선 답변: 저의 장점은 성실함입니다. 예를 들어, 영어 성적을 끌어올리기 위해 매일 공부계획을 세워 1년간 꾸준히 실천했고, 결국 1등급 향상이라는 결과를 얻었습니다...
-"""
-            elif "자기소개" in prompt_text or "1분 자기소개" in prompt_text:
-                return """
-[예시]
-질문: 1분 자기소개 해보세요.
-답변: 안녕하세요. 저는 ESG경영과 생성형 AI를 마케팅에 접목시키는 데 관심이 있는 학생입니다.
-Step 1. 분석: 관심은 드러나지만, 구체적인 활동이나 강점이 부족합니다.
-Step 2. 개선 방향: 본인의 특성과 활동을 연결해 간결히 표현해야 합니다.
-Step 3. 개선 답변: 저는 ESG경영과 생성형 AI에 대해 학습하고, 실제 프로젝트에 적용한 경험이 있습니다. 이를 통해 기술적 감각과 사회적 가치를 함께 고려하는 마케터로 성장하고자 합니다.
-"""
-            else:
-                return ""
-
-        prompt_text = f"{question}\n{answer}\n{major}"
-        example = get_dynamic_fewshot(prompt_text)
-
-        return f"""
-당신은 대학 입시 면접관이자 {major} 전공 교수입니다.
-면접관의 시각에서 수험생의 답변을 분석하고 논리성과 구체성, 설득력을 기준으로 평가한 뒤, 개선된 답변을 제시해야 합니다.
-
-질문: {question}
-지원자 답변: "{answer}"
-
-{example}
-
-아래 형식에 맞춰 작성하세요:
-
-Step 1. 분석:
-Step 2. 개선 방향:
-Step 3. 개선된 답변:
-"""
-
-    @staticmethod
     async def generate_report(interview_id: str) -> ReportResponse:
         interview_id = (str(interview_id) if interview_id is not None else "").strip()
         report_items: List[QuestionReport] = []
@@ -141,13 +97,20 @@ Step 3. 개선된 답변:
             # 기존 동작 유지: 비어 있으면 빈 배열 반환
             return ReportResponse(report=[])
 
+        # GroundTruthAgent 인스턴스 생성
+        if not hasattr(ReportService, "_gt_agent"):
+            ReportService._gt_agent = GroundTruthAgent(
+                    prompt_path="app/agent/prompt/ground_truth_agent.txt"
+                )
+        gt_agent = ReportService._gt_agent
+
         # 3) 각 answer에 대해 report 생성
         for answer in answers:
             question_id = answer.get("question_id")
             if not question_id:
                 continue
 
-            # questions 조회 (문자열/ObjectId 모두 매칭)
+            # questions 조회
             question_doc = await database["questions"].find_one(_qid_filter(question_id))
             if not question_doc:
                 continue
@@ -207,51 +170,44 @@ Step 3. 개선된 답변:
                 if key in EVALUATION_CATEGORIES
             ]
 
-            # GPT 호출: goodExample
-            good_example_prompt = ReportService.build_good_example_prompt(question, answer_text, major)
-            good_example_response = client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": "너는 대학 입시 면접 전문가야."},
-                    {"role": "user", "content": good_example_prompt},
-                ],
-                temperature=0.7,
-                max_tokens=1000,
-            ).choices[0].message.content.strip()
-            good_example_response = extract_improved_answer(good_example_response)
+            # GroundTruth 기반 모범답변 생성 (대표 1개만)
+            gt_result = gt_agent.generate_ground_truth(
+                department=major,
+                document=answer_text,
+                questions=[question],
+            )
+            if isinstance(gt_result, dict) and gt_result:
+                first_key = next(iter(gt_result.keys()))
+                answers_list = gt_result.get(first_key, [])
+                good_example_response = answers_list[0] if answers_list else ""
+            else:
+                good_example_response = ""
 
-            # 답변 세부 분석
-            word_list, hesitant_list, hesitant_score = await AnswerService.analysis_answer(answer_text)
-            top_words = ", ".join([f"{w}({c})" for w, c in word_list[:3]]) if word_list else "없음"
-            hesitant_expressions = ", ".join(hesitant_list[:3]) if hesitant_list else "없음"
+            # summary 답변 총평
+            doc_agent = DocumentAgent(prompt_path="app/agent/prompt/documnet_agent.txt")
+            doc_processed = doc_agent.generate_document(
+                department=major,
+                document=answer_text
+            ).strip()
 
-            # GPT 호출: summary
+            # 정제 결과만 근거로 2~3문장 총평 생성
             summary_prompt = f"""
-당신은 대학 입시 면접관입니다. 아래 정보를 바탕으로 수험자의 답변을 분석하고, 총평을 3~4줄 이내로 작성하세요.
+            아래 '정제 결과'를 근거로, 수험자의 답변에 대한 총평을 한국어로 2~3문장으로만 작성하세요.
+            - 1문장: 답변 요지 요약
+            - 1~2문장: 논리성, 구체성, 태도(전달력) 관점의 평가(잘한 점 + 개선점)
+            - 불릿/머리말/설명 금지, 문장만 출력
 
-[사용자 전공]
-- {major}
+            [정제 결과]
+            {doc_processed}
+            """
 
-[답변 요약 요소]
-- 주요 단어: {top_words}
-- 말끝 흐림 표현: {hesitant_expressions}
-- 흐림 비율: {hesitant_score}%
-
-[수험자 답변]
-{answer_text}
-
-요청 사항:
-- 총평 안에 수험자의 답변 내용을 1~2문장으로 요약하고,
-- 이어서 논리성, 태도, 구체성, 표현 방식 등을 반영한 전반적인 평가를 1~2문장으로 작성하세요.
-- 흐림 표현과 흐림 비율이 높을 경우, 전달력이나 자신감이 다소 부족하다는 평가를 반영하세요.
-- 전공과 단어 선택이 일치하거나 설득력 있는 경우, 그 강점을 언급하세요.
-- 총평은 잘한 점과 개선점을 모두 포함하고, 표현이 자연스럽고 일관되게 이어지도록 작성하세요.
-- 평가자 관점에서 작성하며, 총평 외의 설명이나 지시문은 포함하지 마세요.
-"""
             summary = client.chat.completions.create(
                 model="gpt-4o",
-                messages=[{"role": "user", "content": summary_prompt}],
-                temperature=0.4,
+                messages=[
+                    {"role": "system", "content": "너는 한국의 대학 입시 면접관이다. 반드시 문장만 간결하게 출력해야해."},
+                    {"role": "user", "content": summary_prompt},
+                ],
+                temperature=0.3,
             ).choices[0].message.content.strip()
 
             # 비디오 URL presign
