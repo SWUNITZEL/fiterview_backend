@@ -10,3 +10,5 @@ class Document(BaseModel):
     type: Optional[str] = None
     hashtags: Optional[List[str]] = None
     explanation: Optional[str] = None
+    advice: Optional[str] = None
+    recommended_major: Optional[List[str]] = None
