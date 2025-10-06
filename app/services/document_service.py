@@ -1,7 +1,7 @@
 from app.core.exceptions.base import AppException
 from app.schemas.response.document_response import DocumentResponse
 from app.services.ocr_service import OCRService
-from app.services.gpt_service import GPTService
+from app.agent.student_recore_agent import StudentRecordAgent
 from app.models.document_model import Document
 from pdf2image.exceptions import PDFInfoNotInstalledError
 from PIL import UnidentifiedImageError
@@ -13,8 +13,8 @@ class DocumentService:
 
     def __init__(self):
         self.document_repository = DocumentRepository()
-        self.gpt_service = GPTService()
         self.ocr_service = OCRService()
+        self.student_record_agent = StudentRecordAgent()
 
         # 과목 패턴 구성
         self.subject_mapping = {
@@ -47,16 +47,19 @@ class DocumentService:
                     combined_features += item['features']
 
             combined_grades = self.process_grades(combined_text)
-            gpt_result = self.gpt_service.analyze_student_record_structured(combined_features)
+            recommended_major, advice, type, explanation, hashtags = self.student_record_agent.analyze_student_record(combined_features, combined_grades, len(combined_grades.get("math")))
 
             document = Document(
                 user_email=user_email,
                 content=combined_text,
                 grades=combined_grades,
                 features=combined_features,
-                type=gpt_result.get("type"),
-                hashtags=gpt_result.get("hashtags"),
-                explanation=gpt_result.get("explanation")
+                type=type,
+                hashtags=hashtags,
+                explanation=explanation,
+                advice=advice,
+                recommended_major=recommended_major
+
             )
 
             # 저장된 생활기록부가 없으면 새로 저장하고, 있으면 업데이트
@@ -71,9 +74,11 @@ class DocumentService:
             return DocumentResponse(
                 user_email=user_email,
                 grades=combined_grades,
-                type=gpt_result.get("type"),
-                hashtags=gpt_result.get("hashtags"),
-                explanation=gpt_result.get("explanation")
+                type=type,
+                hashtags=hashtags,
+                explanation=explanation,
+                advice=advice,
+                recommended_major=recommended_major
             )
 
         except PDFInfoNotInstalledError:

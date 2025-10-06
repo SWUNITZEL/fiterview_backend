@@ -9,3 +9,5 @@ class DocumentResponse(BaseModel):
     type: str
     hashtags: list[str]
     explanation: str
+    advice: str
+    recommended_major: list[str]
