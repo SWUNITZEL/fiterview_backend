@@ -75,6 +75,12 @@ class ReportService:
 
         if existing_reports:
             for report in existing_reports:
+                _qi = report.get("questionIndex") or report.get("question_index")
+                try:
+                    _qi = float(_qi)
+                except (TypeError, ValueError):
+                    _qi = 0.0
+
                 report_items.append(
                     QuestionReport(
                         question_id=report.get("question_id") or report.get("questionId"),
@@ -86,7 +92,7 @@ class ReportService:
                         goodExample=report["goodExample"],
                         summary=report["summary"],
                         videos=report.get("videos", []),
-                        questionIndex=report["questionIndex"],
+                        questionIndex=_qi
                     )
                 )
             return ReportResponse(report=report_items)
@@ -126,7 +132,12 @@ class ReportService:
 
             answer_text = answer.get("answer", "")
             major = question_doc.get("major", "일반")
-            question_index = question_doc.get("questionIndex")
+
+            _qi = question_doc.get("question_index") or question_doc.get("questionIndex")
+            try:
+                question_index = float(_qi)
+            except (TypeError, ValueError):
+                question_index = 0.0
 
             # GPT 호출: 질문 의도
             intent_prompt = f"""
@@ -257,7 +268,7 @@ class ReportService:
                 }
             )
 
-        report_items.sort(key=lambda r: r.questionIndex)
+        report_items.sort(key=lambda r: (r.questionIndex if r.questionIndex is not None else 0.0))
         return ReportResponse(report=report_items)
 
 
