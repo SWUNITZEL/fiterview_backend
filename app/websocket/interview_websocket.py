@@ -41,43 +41,61 @@ async def websocket_interview(websocket: WebSocket, interview_id: str):
             # 꼬리 질문 생성
             if len(sentence.replace(" ", "")) >= 100:
                 followup_question_index = question.question_index + 0.1
-                followup_question = await followup_service.generate_followup_questions(sentence, question.question_text)
-                # 꼬리 질문 저장
-                followup_question = Question(
-                    interview_id=question.interview_id,
-                    question_text=followup_question,
-                    question_index=followup_question_index,
-                    total_questions=question.total_questions,
-                    created_at = datetime.datetime.utcnow()
-                )
-                # insert 후 ID 받아오기
-                inserted_question = await question_repo.insert_question(followup_question)
-                followup_question.id = str(inserted_question)
-                await send_question(websocket, followup_question)
 
-                # 꼬리 질문 답변 분석
-                sentence = await receive_and_process_answer(websocket, interview_id, question.id)
+                # 꼬리 질문 생성 시도
+                for attempt in range(3):  # 최대 3회 재시도
+                    try:
+                        followup_text = await followup_service.generate_followup_questions(sentence,
+                                                                                           question.question_text)
+                        followup_question = Question(
+                            interview_id=question.interview_id,
+                            question_text=followup_text,
+                            question_index=followup_question_index,
+                            total_questions=question.total_questions,
+                            created_at=datetime.datetime.utcnow()
+                        )
+                        # insert 후 ID 받아오기
+                        inserted_question = await question_repo.insert_question(followup_question)
+                        followup_question.id = str(inserted_question)
+
+                        await send_question(websocket, followup_question)
+
+                        # 꼬리 질문 답변 분석
+                        sentence = await receive_and_process_answer(websocket, interview_id, followup_question.id)
+                        break  # 성공 시 재시도 종료
+                    except Exception as e:
+                        print(f"[WARNING] 꼬리 질문 생성 실패 시도 {attempt + 1}: {e}")
+                        if attempt == 2:
+                            print("[ERROR] 꼬리 질문 생성 실패, 다음 단계로 진행")
+                            break
 
                 # 2차 꼬리 질문 생성
                 if len(sentence.replace(" ", "")) >= 100:
-                    followup_question_index = followup_question_index + 0.1
-                    followup_question = await followup_service.generate_followup_questions(sentence,
-                                                                                           question.question_text)
-                    # 꼬리 질문 저장
-                    followup_question = Question(
-                        interview_id=question.interview_id,
-                        question_text=followup_question,
-                        question_index=followup_question_index,
-                        total_questions=question.total_questions,
-                        created_at=datetime.datetime.utcnow()
-                    )
-                    # insert 후 ID 받아오기
-                    inserted_question = await question_repo.insert_question(followup_question)
-                    followup_question.id = str(inserted_question)
-                    await send_question(websocket, followup_question)
+                    followup_question_index += 0.1
 
-                    # 꼬리 질문 답변 분석
-                    await receive_and_process_answer(websocket, interview_id, question.id)
+                    for attempt in range(3):
+                        try:
+                            followup_text = await followup_service.generate_followup_questions(sentence,
+                                                                                               question.question_text)
+                            followup_question = Question(
+                                interview_id=question.interview_id,
+                                question_text=followup_text,
+                                question_index=followup_question_index,
+                                total_questions=question.total_questions,
+                                created_at=datetime.datetime.utcnow()
+                            )
+                            inserted_question = await question_repo.insert_question(followup_question)
+                            followup_question.id = str(inserted_question)
+
+                            await send_question(websocket, followup_question)
+
+                            await receive_and_process_answer(websocket, interview_id, followup_question.id)
+                            break
+                        except Exception as e:
+                            print(f"[WARNING] 2차 꼬리 질문 생성 실패 시도 {attempt + 1}: {e}")
+                            if attempt == 2:
+                                print("[ERROR] 2차 꼬리 질문 생성 실패, 다음 단계로 진행")
+                                break
 
 
 

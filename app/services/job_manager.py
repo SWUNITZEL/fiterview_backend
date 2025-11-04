@@ -84,6 +84,22 @@ class JobManager:
                 
         return True
 
+    def cleanup_jobs(self, interview_id: str):
+        """특정 인터뷰의 모든 작업 데이터를 Redis에서 정리"""
+        job_ids = self.redis_client.smembers(f"interview_jobs:{interview_id}")
+        if not job_ids:
+            print(f"[JobManager] {interview_id} 관련 작업 없음")
+            return
+
+        # 각 job 키 삭제
+        for job_id in job_ids:
+            self.redis_client.delete(f"job:{job_id}")
+
+        # 인터뷰별 작업 목록 삭제
+        self.redis_client.delete(f"interview_jobs:{interview_id}")
+
+        print(f"[JobManager] {interview_id} 관련 모든 작업 정리 완료 ✅")
+
 
 # 싱글톤 인스턴스
 job_manager = JobManager()
