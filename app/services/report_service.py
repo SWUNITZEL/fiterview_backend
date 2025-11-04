@@ -13,19 +13,27 @@ from app.agent.ground_truth_agent import GroundTruthAgent
 
 client = openai.OpenAI(api_key=settings.GPT_API_KEY)
 
-# --- 안전 쿼리 헬퍼 ---
+# --- 필드명 불일치 (나중에 스키마 수정예정) ---
 def _interview_filter(iid: str):
-    iid = (str(iid) if iid is not None else "").strip()
-    ors = [{"interview_id": iid}, {"interviewId": iid}]
+    iid = (str(iid) if iid else "").strip()
+    ors = [
+        {"interview_id": iid},
+        {"interviewId": iid},
+        {"combine_id": iid},
+        {"id": iid},
+    ]
     try:
         oid = ObjectId(iid)
-        ors += [{"interview_id": oid}, {"interviewId": oid}]
+        ors += [
+            {"interview_id": oid},
+            {"interviewId": oid},
+            {"combine_id": oid},
+            {"id": oid},
+        ]
     except Exception:
         pass
     return {"$or": ors}
-
 def _qid_filter(qid: str):
-    """questions._id가 str/ObjectId 모두 매칭"""
     ors = [{"_id": qid}]
     try:
         ors.append({"_id": ObjectId(qid)})
