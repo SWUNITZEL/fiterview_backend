@@ -8,6 +8,7 @@ auth_service = AuthService()
 report_service = ReportService()
 router = APIRouter(dependencies=[Depends(auth_service.get_current_user)])
 
+
 @router.post("/report/{interview_id}/answer_result", response_model=ReportResponse)
 async def generate_report(
     interview_id: str = Path(..., description="면접 ID")
@@ -35,8 +36,18 @@ async def generate_report(
     """
     try:
         return await report_service.generate_report(interview_id)
+
     except InterviewNotFoundException:
         raise HTTPException(status_code=404, detail="면접을 찾을 수 없습니다.")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"보고서 생성 중 오류: {str(e)}")
 
+    except Exception as e:
+        # 임시 로그 추가: 에러 원인 콘솔 출력
+        import traceback
+        print("[REPORT ERROR]", str(e))
+        traceback.print_exc()
+
+        # 기존 500 응답 유지
+        raise HTTPException(
+            status_code=500,
+            detail=f"보고서 생성 중 오류: {str(e)}"
+        )
