@@ -110,31 +110,80 @@ class DocumentService:
     # 성적 추출
     def extract_grades(self, text):
 
-        # 학년별로 블록 나눠 추출
-        pattern = r"\[(\d학년)\]\s?원점수/과목평균(.*?합계\s*\d+)"
-        blocks = re.findall(pattern, text, re.DOTALL)
+        subject_mapping = {
+            '기술': 'etc',  # 제2외국어 등
+            '국어': 'korean',
+            '수학': 'math',
+            '영어': 'english',
+            '사회': 'social',
+            '과학': 'science',
+            '한국사': 'history'
+        }
 
-        if blocks == None:
-            return {}
+        # 학년별로 블로 나눠 추출
+        pattern = r"\[(\d학년)\](?:.*?)원점수/과목평균(.*?합계\s*\d+)"
+        blocks = re.findall(pattern, text, re.DOTALL)
 
         results = {}
 
-        # 성적 추출
         for grade, content in blocks:
-            content = content.replace(" ", "")
-            content = (
-                content[content.find("(수강자수)") + len("(수강자수)"):content.find("이수학점합계")].replace("양", "").replace("과학과학탐구실험",""))
+
+            # [수정 2] 'content'에서 첫 과목명의 시작 위치를 찾습니다.
+            min_index = float('inf')
+
+            # '정보' 과목도 '기술'로 취급되므로 탐색 리스트에 추가
+            subject_names = list(subject_mapping.keys()) + ['정보']
+
+            for subject in subject_names:
+                index = content.find(subject)
+                if index != -1 and index < min_index:
+                    min_index = index
+
+            # 만약 과목을 하나도 못찾았다면 이 블록은 건너뜀
+            if min_index == float('inf'):
+                print(f"[{grade}] 블록에서 과목을 찾지 못했습니다.")
+                continue
+
+            # 찾은 첫 과목 위치부터 content를 슬라이싱
+            content = content[min_index:]
+
+            # 공백 제거
+            content = content.replace(" ", "").replace("전입학", "").replace("1PP", "\n")
+
+            # '이수단위합계'까지만 자르기
+            end_index = content.find("이수단위합계")
+            if end_index != -1:
+                content = content[:end_index]
+
+            # 나머지 불필요한 문자 제거
+            content = (content.replace("양", "")
+                       .replace("어/한문/교", "")
+                       .replace("과학과학탐구실험", ""))  # '과학'과 중복 집계 방지
 
             grade_dict = {}
+
             # 과목별로 등급 추출
-            for kor_subject, eng_subject in self.subject_mapping.items():
-                # 패턴: 과목명 뒤에 성취도(A-F) + 괄호 인원수 + 등수
-                pattern = rf'(?<![가-힣]){re.escape(kor_subject)}.*?[A-F]\(?\d+\)?\s*(\d)'
+            for kor_subject, eng_subject in subject_mapping.items():
+                # 절대평가 배제하지 않고 그냥 실행
+                pattern_subject = kor_subject
+
+                if kor_subject == '국어':
+                    base_pattern = rf'{pattern_subject}.*?'
+                else:
+                    base_pattern = rf'(?<![가-힣]){pattern_subject}.*?'
+
+                pattern = base_pattern + r'\([\d\.]+\)\(\d+\)(\d)'
+
                 matches = re.findall(pattern, content)
+
+                # (예외 처리) 만약 위 패턴으로 못찾았는데, A(272) 같은 패턴이 있다면 그것도 시도
+                if not matches:
+                    pattern_alpha = rf'(?<![가-힣]){pattern_subject}.*?[A-F]\(\d+\)(\d)'
+                    matches = re.findall(pattern_alpha, content)
+
                 grade_dict[eng_subject] = [int(rank) for rank in matches] if matches else []
 
             results[grade] = grade_dict
-
         return results
 
 
@@ -150,7 +199,7 @@ class DocumentService:
                     semester_data['1학기'][subject] = []
                     semester_data['2학기'][subject] = []
                 else:
-                    mid = len(ranks) // 2
+                    mid = (len(ranks) + 1) // 2
                     # 홀수 개일 때는 앞쪽을 1학기라고 가정
                     semester_data['1학기'][subject] = ranks[:mid]
                     semester_data['2학기'][subject] = ranks[mid:]
