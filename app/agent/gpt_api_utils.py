@@ -43,6 +43,6 @@ def call_gpt(system_prompt, user_prompt, temperature=TEMPERATURE):
         reasoning={},
         text={},
         store=False,
-        max_output_tokens=4096
+        max_output_tokens=500
     )
     return response.output_text
